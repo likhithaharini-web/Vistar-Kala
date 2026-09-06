@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vistar Kala | Heritage Commerce AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#140206">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Vistar Kala | Heritage Commerce AI Marketplace</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -483,25 +487,22 @@
                 </div>
             </div>
 
-            <!-- 6-Step Visual Progress Stepper -->
-            <div class="grid grid-cols-6 gap-2 mt-5 text-center">
-                <button onclick="setArtisanStep(1)" id="step-tab-1" class="step-tab py-2 px-1 rounded-xl bg-gold-500 text-maroon-950 font-extrabold text-[10px] sm:text-xs transition-all shadow-md">
+            <!-- 5-Step Visual Progress Stepper (Touch Swipeable on Mobile, Grid on Desktop) -->
+            <div class="flex sm:grid sm:grid-cols-5 gap-2 mt-5 text-center overflow-x-auto pb-2 scrollbar-none snap-x">
+                <button onclick="setArtisanStep(1)" id="step-tab-1" class="step-tab shrink-0 min-w-[85px] sm:min-w-0 snap-start py-2.5 px-2 rounded-xl bg-gold-500 text-maroon-950 font-extrabold text-[10px] sm:text-xs transition-all shadow-md">
                     1. Enhancer
                 </button>
-                <button onclick="setArtisanStep(2)" id="step-tab-2" class="step-tab py-2 px-1 rounded-xl bg-maroon-950 text-gold-300 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all">
+                <button onclick="setArtisanStep(2)" id="step-tab-2" class="step-tab shrink-0 min-w-[85px] sm:min-w-0 snap-start py-2.5 px-2 rounded-xl bg-maroon-950 text-gold-300 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all">
                     2. Voice Catalog
                 </button>
-                <button onclick="setArtisanStep(3)" id="step-tab-3" class="step-tab py-2 px-1 rounded-xl bg-maroon-950 text-gold-300 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all">
-                    3. AI Story
+                <button onclick="setArtisanStep(3)" id="step-tab-3" class="step-tab shrink-0 min-w-[85px] sm:min-w-0 snap-start py-2.5 px-2 rounded-xl bg-maroon-950 text-gold-300 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all">
+                    3. Pricing
                 </button>
-                <button onclick="setArtisanStep(4)" id="step-tab-4" class="step-tab py-2 px-1 rounded-xl bg-maroon-950 text-gold-300 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all">
-                    4. Pricing
+                <button onclick="setArtisanStep(4)" id="step-tab-4" class="step-tab shrink-0 min-w-[85px] sm:min-w-0 snap-start py-2.5 px-2 rounded-xl bg-maroon-950 text-gold-300 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all">
+                    4. Product Card
                 </button>
-                <button onclick="setArtisanStep(5)" id="step-tab-5" class="step-tab py-2 px-1 rounded-xl bg-maroon-950 text-gold-300 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all">
-                    5. GI Tag
-                </button>
-                <button onclick="setArtisanStep(6)" id="step-tab-6" class="step-tab py-2 px-1 rounded-xl bg-maroon-950 text-gold-300 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all">
-                    6. Chat & Sync
+                <button onclick="setArtisanStep(5)" id="step-tab-5" class="step-tab shrink-0 min-w-[85px] sm:min-w-0 snap-start py-2.5 px-2 rounded-xl bg-maroon-950 text-gold-300 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all">
+                    5. Chat & Sync
                 </button>
             </div>
         </div>
@@ -520,7 +521,7 @@
                     </p>
                 </div>
                 <span id="badge-step1-indicator" class="text-xs font-bold text-gold-400 bg-gold-500/15 px-3 py-1 rounded-full border border-gold-500/30">
-                    Step 1 of 6
+                    Step 1 of 5
                 </span>
             </div>
 
@@ -601,7 +602,7 @@
                     </p>
                 </div>
                 <span class="text-xs font-bold text-gold-400 bg-gold-500/15 px-3 py-1 rounded-full border border-gold-500/30">
-                    Step 2 of 6
+                    Step 2 of 5
                 </span>
             </div>
 
@@ -655,18 +656,20 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
                     <div>
                         <span id="lbl-fld-title" class="text-stone-400 block mb-1">Product Title:</span>
-                        <input id="cat-title" type="text" value="Sacred Harvest Celebration Warli Canvas" class="w-full bg-maroon-900 border border-gold-500/30 rounded-lg p-2 text-gold-100 font-bold focus:border-gold-400 outline-none">
+                        <input id="cat-title" type="text" value="Sacred Harvest Celebration Warli Canvas" class="w-full bg-maroon-900 border border-gold-500/30 rounded-lg p-2 text-gold-100 font-bold focus:border-gold-400 outline-none" oninput="updateLiveProductCard()">
                     </div>
                     <div>
                         <span id="lbl-fld-medium" class="text-stone-400 block mb-1">Craft Form / Medium:</span>
-                        <input id="cat-medium" type="text" value="Warli Tribal Art on Handspun Canvas" class="w-full bg-maroon-900 border border-gold-500/30 rounded-lg p-2 text-gold-100 font-semibold focus:border-gold-400 outline-none">
+                        <input id="cat-medium" type="text" value="Warli Tribal Art on Handspun Canvas" class="w-full bg-maroon-900 border border-gold-500/30 rounded-lg p-2 text-gold-100 font-semibold focus:border-gold-400 outline-none" oninput="updateLiveProductCard()">
                     </div>
                     <div>
                         <span id="lbl-fld-specs" class="text-stone-400 block mb-1">Dimensions / Specs:</span>
-                        <input id="cat-specs" type="text" value="18 x 24 Inches (Hand-stretched)" class="w-full bg-maroon-900 border border-gold-500/30 rounded-lg p-2 text-gold-100 font-semibold focus:border-gold-400 outline-none">
+                        <input id="cat-specs" type="text" value="18 x 24 Inches (Hand-stretched)" class="w-full bg-maroon-900 border border-gold-500/30 rounded-lg p-2 text-gold-100 font-semibold focus:border-gold-400 outline-none" oninput="updateLiveProductCard()">
                     </div>
                 </div>
             </div>
+
+
 
             <!-- Navigation Buttons -->
             <div class="mt-6 flex justify-between items-center">
@@ -674,99 +677,193 @@
                     ← Back to Enhancer
                 </button>
                 <button onclick="setArtisanStep(3)" id="btn-proceed-step3" class="py-3 px-6 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 text-maroon-950 font-extrabold text-sm shadow-lg shadow-gold-500/20 transition-all flex items-center gap-2">
-                    Proceed to Step 3: AI Story Weaver →
+                    Proceed to Step 3: Dynamic Pricing →
                 </button>
             </div>
         </div>
 
         <!-- ================================================================= -->
-        <!-- ARTISAN STEP 3: AI PRODUCT STORY WEAVER (FOLKLORE & MULTILINGUAL VOICE) -->
+        <!-- ARTISAN STEP 3: DYNAMIC FAIR-PRICE ASSISTANT -->
         <!-- ================================================================= -->
         <div id="artisan-step-3" class="artisan-step-content hidden bg-gradient-to-b from-maroon-900/95 to-maroon-850/95 border-2 border-gold-500/35 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl fade-in">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 id="step3-heading" class="text-xl sm:text-2xl font-bold text-gold-100 font-serif-heritage">
-                        📜 Step 3: AI Heritage Story Weaver & Universal Voice Translator
+                        📊 Step 3: Dynamic Fair-Price Assistant
                     </h2>
                     <p id="step3-sub" class="text-xs sm:text-sm text-stone-200 mt-1">
-                        Speak in <strong>any Indian language</strong> — AI translates and crafts an authentic English folklore story with voice narration.
+                        Comprehensive pricing model driven by 5 Key Inputs: Market Trends, Materials, Labor, Production Time & Detailing Quality.
                     </p>
                 </div>
                 <span class="text-xs font-bold text-gold-400 bg-gold-500/15 px-3 py-1 rounded-full border border-gold-500/30">
-                    Step 3 of 6
+                    Step 3 of 5
                 </span>
             </div>
 
-            <!-- Universal Regional Voice Input Section -->
-            <div class="mb-6 bg-maroon-950 border-2 border-gold-500/40 rounded-2xl p-5 shadow-xl">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                    <label id="lbl-speak-dialect" class="text-xs font-bold text-gold-300 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-microphone-lines text-gold-400 text-sm"></i> Speak in Any Language (Hindi, Marathi, Telugu, Tamil, Bengali, etc.):
-                    </label>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- 5 KEY INPUTS PANEL -->
+                <div class="lg:col-span-7 space-y-4 bg-maroon-950 p-5 rounded-2xl border border-gold-500/30">
+                    <h3 id="lbl-input-cost-hdr" class="text-xs font-bold text-gold-300 uppercase tracking-wider flex items-center justify-between border-b border-gold-500/20 pb-2">
+                        <span>Dynamic Fair Price — 5 Key Inputs</span>
+                        <span class="text-[10px] text-emerald-400 font-mono"><i class="fa-solid fa-calculator me-1"></i> AI Wage Protection active</span>
+                    </h3>
                     
-                    <div class="flex items-center gap-2">
-                        <button onclick="simulateRegionalVoice('mr')" class="text-[11px] px-2.5 py-1 rounded-lg bg-maroon-900 border border-gold-500/30 text-gold-200 hover:border-gold-400">
-                            🗣️ Marathi Sample
-                        </button>
-                        <button onclick="simulateRegionalVoice('te')" class="text-[11px] px-2.5 py-1 rounded-lg bg-maroon-900 border border-gold-500/30 text-gold-200 hover:border-gold-400">
-                            🗣️ Telugu Sample
-                        </button>
-                        <button onclick="simulateRegionalVoice('hi')" class="text-[11px] px-2.5 py-1 rounded-lg bg-maroon-900 border border-gold-500/30 text-gold-200 hover:border-gold-400">
-                            🗣️ Hindi Sample
-                        </button>
+                    <!-- 1. Current Market Price -->
+                    <div class="p-3.5 rounded-xl bg-maroon-900/80 border border-gold-500/25 space-y-2">
+                        <div class="flex justify-between items-center text-xs font-bold text-gold-200">
+                            <span>📈 1. Current Market Price & Demand Benchmark</span>
+                            <span id="val-market-avg" class="text-gold-400 font-mono">Avg: ₹3,400</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <span class="text-[11px] text-stone-400 block mb-1">Similar Craft Market Range:</span>
+                                <input type="text" readonly value="₹3,100 – ₹4,200" class="w-full bg-maroon-950 border border-gold-500/30 rounded-lg p-1.5 text-stone-200 font-semibold text-xs outline-none">
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-stone-400 block mb-1">Current Demand / Trend Multiplier:</span>
+                                <select id="sel-market-trend" onchange="calculatePricing()" class="w-full bg-maroon-950 border border-gold-500/40 rounded-lg p-1.5 text-gold-300 font-bold text-xs focus:border-gold-400 outline-none cursor-pointer">
+                                    <option value="1.15">🔥 High Demand / Festive Season (+15%)</option>
+                                    <option value="1.0" selected>⚖️ Steady Average Demand (+0%)</option>
+                                    <option value="1.25">👑 Rare Heritage Collector (+25%)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Material Cost -->
+                    <div class="p-3.5 rounded-xl bg-maroon-900/80 border border-gold-500/25 space-y-2">
+                        <div class="flex justify-between items-center text-xs font-bold text-gold-200">
+                            <span>📦 2. Material Cost & Quantity</span>
+                            <span class="text-gold-300 font-bold font-mono" id="val-material">₹450</span>
+                        </div>
+                        <div class="text-[11px] text-stone-400 flex justify-between mb-1">
+                            <span>Raw Materials: Organic Rice Paste, Natural Earth Dyes, Canvas</span>
+                            <span id="val-material-qty" class="text-gold-300">1 Canvas Unit</span>
+                        </div>
+                        <input type="range" id="slider-material" min="100" max="2500" step="50" value="450" oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
+                    </div>
+
+                    <!-- 3. Labour & Human Effort -->
+                    <div class="p-3.5 rounded-xl bg-maroon-900/80 border border-gold-500/25 space-y-2.5">
+                        <div class="flex justify-between items-center text-xs font-bold text-gold-200">
+                            <span>👥 3. Labour & Human Effort</span>
+                            <span class="text-gold-300 font-bold font-mono" id="val-labor-summary">14 Hrs @ ₹180/hr</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                            <div>
+                                <div class="flex justify-between text-[11px] text-stone-300 mb-1">
+                                    <span>Artisans Involved:</span>
+                                    <span id="val-artisans-cnt" class="text-gold-300 font-bold">1 Artisan</span>
+                                </div>
+                                <input type="range" id="slider-artisans" min="1" max="8" step="1" value="1" oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-[11px] text-stone-300 mb-1">
+                                    <span>Labour Hours:</span>
+                                    <span id="val-hours" class="text-gold-300 font-bold">14 Hours</span>
+                                </div>
+                                <input type="range" id="slider-hours" min="2" max="60" step="1" value="14" oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-stone-400 block mb-1">Artisan Skill Tier:</span>
+                                <select id="sel-skill-level" onchange="calculatePricing()" class="w-full bg-maroon-950 border border-gold-500/40 rounded-lg p-1.5 text-gold-300 font-bold text-xs focus:border-gold-400 outline-none cursor-pointer">
+                                    <option value="180" selected>Master Artisan (Tier 4 / ₹180/hr)</option>
+                                    <option value="150">Senior Craftsman (Tier 3 / ₹150/hr)</option>
+                                    <option value="120">Artisan Guild Member (Tier 2 / ₹120/hr)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Production Time & Process Complexity -->
+                    <div class="p-3.5 rounded-xl bg-maroon-900/80 border border-gold-500/25 space-y-2">
+                        <div class="flex justify-between items-center text-xs font-bold text-gold-200">
+                            <span>⏳ 4. Production Time & Complexity</span>
+                            <span id="val-days-req" class="text-gold-300 font-bold font-mono">2.5 Days Total</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <span class="text-[11px] text-stone-400 block mb-1">Eco Packaging & Prep:</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" id="slider-pack" min="50" max="600" step="25" value="150" oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
+                                    <span id="val-pack" class="text-gold-300 font-bold text-[11px] whitespace-nowrap">₹150</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-stone-400 block mb-1">Process Complexity Grade:</span>
+                                <select id="sel-complexity" onchange="calculatePricing()" class="w-full bg-maroon-950 border border-gold-500/40 rounded-lg p-1.5 text-gold-300 font-bold text-xs focus:border-gold-400 outline-none cursor-pointer">
+                                    <option value="1.15" selected>Intricate Tarpa Motif (Medium)</option>
+                                    <option value="1.30">Fine Line Sacred Lore (Complex)</option>
+                                    <option value="1.05">Basic Geometric Folk (Standard)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Craftsmanship & Quality -->
+                    <div class="p-3.5 rounded-xl bg-maroon-900/80 border border-gold-500/25 space-y-2">
+                        <div class="flex justify-between items-center text-xs font-bold text-gold-200">
+                            <span>🎨 5. Craftsmanship & Quality Assurance</span>
+                            <span class="text-xs text-emerald-400 font-bold"><i class="fa-solid fa-certificate me-1"></i> 100% Authentic</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                            <div class="p-2 rounded-lg bg-maroon-950 border border-gold-500/20 text-center">
+                                <span class="text-stone-400 block text-[10px]">Method:</span>
+                                <span class="font-bold text-gold-300">✋ 100% Handmade</span>
+                            </div>
+                            <div class="p-2 rounded-lg bg-maroon-950 border border-gold-500/20 text-center">
+                                <span class="text-stone-400 block text-[10px]">Materials:</span>
+                                <span class="font-bold text-gold-300">🌿 Organic Rice Paste</span>
+                            </div>
+                            <div class="p-2 rounded-lg bg-maroon-950 border border-gold-500/20 text-center col-span-2 sm:col-span-1">
+                                <span class="text-stone-400 block text-[10px]">Detailing:</span>
+                                <span id="val-detailing-lbl" class="font-bold text-gold-300">High Fine-Line</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Input Box for Artisan Details or Spoken Transcript -->
-                <div class="relative">
-                    <textarea id="artisan-custom-notes" rows="2" placeholder="Speak or type your craft details in any language... (E.g. आम्ही डहाणू गावातून 4 पिढ्यांपासून निसर्गाची पूजा करत तांदळाच्या पिठाने वारली चित्र काढतो...)" class="w-full bg-maroon-900 border border-gold-500/30 rounded-xl p-3 text-xs sm:text-sm text-gold-100 placeholder-stone-500 focus:outline-none focus:border-gold-400"></textarea>
-                    
-                    <button onclick="recordAnyLanguageVoice()" id="btn-regional-mic" class="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg bg-gold-500 hover:bg-gold-400 text-maroon-950 font-bold text-xs flex items-center gap-1.5 shadow-md transition-all">
-                        <i class="fa-solid fa-microphone"></i> <span id="lbl-reg-mic">Record Voice</span>
-                    </button>
-                </div>
-
-                <div class="mt-3 flex justify-between items-center text-[11px] text-stone-400">
-                    <span id="lbl-story-hint">💡 <em>Leave blank to auto-generate from historical folklore, or provide personal words to blend!</em></span>
-                    <button onclick="generateAIStory()" id="btn-weave-story" class="px-4 py-2 rounded-xl bg-gold-500/20 hover:bg-gold-500 text-gold-300 hover:text-maroon-950 font-bold text-xs border border-gold-500/40 transition-all flex items-center gap-1.5">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Translate & Weave Story
-                    </button>
-                </div>
-            </div>
-
-            <!-- Generated AI Cultural Story Display with Voice Narration -->
-            <div class="bg-gradient-to-br from-maroon-950 via-maroon-900 to-maroon-950 border-2 border-gold-400 rounded-2xl p-6 relative shadow-2xl">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl">🌿</span>
-                        <span id="story-origin-tag" class="text-xs uppercase font-extrabold tracking-widest text-gold-300">
-                            Warli Tribal Origin • Sahyadri Foothills
+                <!-- DYNAMIC PRICING SUMMARY CARD -->
+                <div class="lg:col-span-5 bg-gradient-to-br from-maroon-950 to-maroon-900 border-2 border-gold-400 rounded-2xl p-5 flex flex-col justify-between shadow-2xl">
+                    <div>
+                        <span id="lbl-ai-fair-rates" class="text-[11px] uppercase font-bold text-gold-400 tracking-widest block mb-3 flex items-center justify-between border-b border-gold-500/20 pb-2">
+                            <span>✨ AI Computed Fair Rates</span>
+                            <span class="text-[10px] text-amber-300 font-normal">Updated Live</span>
                         </span>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center pb-2 border-b border-gold-500/20 text-xs">
+                                <span id="lbl-out-labor" class="text-stone-300">Direct Artisan Labor Payout:</span>
+                                <span id="out-labor" class="text-gold-300 font-bold font-mono">₹2,520</span>
+                            </div>
+
+                            <div class="flex justify-between items-center pb-2 border-b border-gold-500/20 text-xs">
+                                <span id="lbl-out-cost" class="text-stone-300">Base Production Cost:</span>
+                                <span id="out-cost" class="text-gold-300 font-bold font-mono">₹3,120</span>
+                            </div>
+
+                            <div class="flex justify-between items-center pb-2 border-b border-gold-500/20 text-xs">
+                                <span class="text-stone-300">Market Demand & Skill Add:</span>
+                                <span id="out-market-premium" class="text-emerald-400 font-bold font-mono">+₹770</span>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-gold-500/15 border border-gold-500/30">
+                                <span id="lbl-out-msrp" class="text-[11px] text-stone-300 block font-semibold">Recommended Retail (Fair MSRP):</span>
+                                <span id="out-msrp" class="text-3xl font-extrabold text-gold-300 font-serif-heritage block my-1">₹3,890</span>
+                                <span class="text-[10px] text-gold-400/90 block">Ensures 100% fair artisan wage & sustainable guild growth</span>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-maroon-950 border border-gold-500/20">
+                                <span id="lbl-out-b2b" class="text-[11px] text-stone-400 block">Wholesale B2B Rate (MOQ 50+):</span>
+                                <span id="out-b2b" class="text-lg font-bold text-gold-200 font-mono">₹2,850 / unit</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- REAL English Voice Narration Button (TTS) -->
-                    <div class="flex items-center gap-2">
-                        <button id="btn-tts-play" onclick="playEnglishVoiceNarration()" class="px-4 py-2 rounded-full bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-gold-500/20 hover:scale-105">
-                            <i id="tts-icon" class="fa-solid fa-volume-high"></i>
-                            <span id="tts-label">Play English Voice Narration 🔊</span>
-                        </button>
-                        <button onclick="stopVoiceNarration()" class="px-2.5 py-2 rounded-full bg-maroon-900 border border-gold-500/30 text-stone-300 hover:text-gold-200 text-xs" title="Stop Audio">
-                            <i class="fa-solid fa-stop"></i>
-                        </button>
+                    <div class="mt-4 pt-3 border-t border-gold-500/20 text-[11px] text-gold-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-check text-gold-400 text-sm"></i> 
+                        <span id="lbl-zero-comm"><strong>0% Commission Deductions</strong> — 100% Direct Settlement to Artisan Bank.</span>
                     </div>
-                </div>
-
-                <h3 id="story-heading" class="text-lg font-bold text-gold-100 font-serif-heritage mb-2">
-                    "Song of the Mother Earth: The Sacred Tarpa Circle"
-                </h3>
-
-                <p id="story-body" class="text-xs sm:text-sm text-stone-100 leading-relaxed italic border-l-4 border-gold-400 pl-4 my-3 bg-maroon-950/60 py-3 rounded-r-xl">
-                    "In the deep misty forests of the Sahyadri mountains, the Warli tribe paints not with synthetic pigments, but with sacred rice paste and mother earth. This piece captures the Tarpa Dance—where men and women intertwine hands in a perpetual spiral, mirroring the cosmic cycle of birth, harvest, and monsoon. Every stroke represents harmony between human spirit and the sacred wilderness, preserving 2,500 years of unbroken indigenous oral history."
-                </p>
-
-                <div class="mt-4 pt-3 border-t border-gold-500/20 flex flex-wrap justify-between items-center text-[11px] text-gold-300">
-                    <span id="lbl-ai-trans-badge">✨ <strong>Universal AI Translation:</strong> Regional Dialect $\rightarrow$ Global English Story</span>
-                    <span id="lbl-cluster-origin-badge">📍 <strong>Cluster:</strong> Dahanu, Maharashtra, India</span>
                 </div>
             </div>
 
@@ -776,103 +873,126 @@
                     ← Back to Voice Catalog
                 </button>
                 <button onclick="setArtisanStep(4)" id="btn-proceed-step4" class="py-3 px-6 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 text-maroon-950 font-extrabold text-sm shadow-lg shadow-gold-500/20 transition-all flex items-center gap-2">
-                    Proceed to Step 4: Dynamic Pricing →
+                    Proceed to Step 4: Product Card →
                 </button>
             </div>
         </div>
 
         <!-- ================================================================= -->
-        <!-- ARTISAN STEP 4: DYNAMIC FAIR-PRICE ASSISTANT -->
+        <!-- ARTISAN STEP 4: GENERATED PRODUCT CARD & PUBLISHING STUDIO -->
         <!-- ================================================================= -->
         <div id="artisan-step-4" class="artisan-step-content hidden bg-gradient-to-b from-maroon-900/95 to-maroon-850/95 border-2 border-gold-500/35 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl fade-in">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 id="step4-heading" class="text-xl sm:text-2xl font-bold text-gold-100 font-serif-heritage">
-                        📊 Step 4: Dynamic Fair-Price Assistant
+                        🛍️ Step 4: Artisan Product Card & Publishing Studio
                     </h2>
                     <p id="step4-sub" class="text-xs sm:text-sm text-stone-200 mt-1">
-                        Transparent, ethical pricing calculator that protects artisan wages and computes B2B bulk tiers.
+                        Verified product card preview with complete 14 recommended fields and live publish options (Normal Fixed Price vs Live Heritage Bidding).
                     </p>
                 </div>
                 <span class="text-xs font-bold text-gold-400 bg-gold-500/15 px-3 py-1 rounded-full border border-gold-500/30">
-                    Step 4 of 6
+                    Step 4 of 5
                 </span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Interactive Sliders -->
-                <div class="space-y-4 bg-maroon-950 p-5 rounded-2xl border border-gold-500/30">
-                    <h3 id="lbl-input-cost-hdr" class="text-xs font-bold text-gold-300 uppercase tracking-wider">Input Cost & Effort Factors:</h3>
-                    
-                    <!-- Raw Materials -->
-                    <div>
-                        <div class="flex justify-between text-xs font-semibold text-stone-300 mb-1">
-                            <span id="lbl-sl-material">Raw Materials (Canvas, Rice Paste, Dyes):</span>
-                            <span class="text-gold-300 font-bold" id="val-material">₹450</span>
+            <!-- GENERATED ARTISAN PRODUCT CARD PREVIEW (Step 4 Product Card) -->
+            <div class="bg-gradient-to-br from-maroon-950 via-maroon-900 to-maroon-950 border-2 border-gold-400 rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gold-500/25 pb-3 mb-4 gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-gold-500 text-maroon-950 font-black flex items-center justify-center text-sm shadow-md">
+                            🛍️
+                        </span>
+                        <div>
+                            <h3 class="text-base font-bold text-gold-100 font-serif-heritage flex items-center gap-2">
+                                Generated Product Card — Recommended Details
+                            </h3>
+                            <span class="text-[10px] text-stone-400">Live preview generated automatically from Voice, Image & Pricing AI</span>
                         </div>
-                        <input type="range" id="slider-material" min="100" max="2500" step="50" value="450" oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
                     </div>
-
-                    <!-- Crafting Hours -->
-                    <div>
-                        <div class="flex justify-between text-xs font-semibold text-stone-300 mb-1">
-                            <span id="lbl-sl-hours">Artisan Crafting Time:</span>
-                            <span class="text-gold-300 font-bold" id="val-hours">14 Hours</span>
-                        </div>
-                        <input type="range" id="slider-hours" min="2" max="60" step="1" value="14" oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
-                    </div>
-
-                    <!-- Fair Wage Rate -->
-                    <div>
-                        <div class="flex justify-between text-xs font-semibold text-stone-300 mb-1">
-                            <span id="lbl-sl-wage">Fair Hourly Wage Benchmark:</span>
-                            <span class="text-gold-300 font-bold" id="val-wage">₹180 / hr</span>
-                        </div>
-                        <input type="range" id="slider-wage" min="100" max="400" step="10" value="180" oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
-                    </div>
-
-                    <!-- Packaging & GI Authenticity -->
-                    <div>
-                        <div class="flex justify-between text-xs font-semibold text-stone-300 mb-1">
-                            <span id="lbl-sl-pack">Eco-Friendly Packaging & GI Seal:</span>
-                            <span class="text-gold-300 font-bold" id="val-pack">₹150</span>
-                        </div>
-                        <input type="range" id="slider-pack" min="50" max="600" step="25" value="150" oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
+                    <div class="flex items-center gap-2 self-start sm:self-auto">
+                        <span id="pcard-auth" class="text-[11px] uppercase tracking-wider font-extrabold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500/40">
+                            <i class="fa-solid fa-circle-check me-1"></i> Authenticity Verified ✓
+                        </span>
+                        <button onclick="openPublishModal()" class="py-1.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 text-maroon-950 font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5 transform hover:scale-105">
+                            🚀 Publish Product
+                        </button>
                     </div>
                 </div>
 
-                <!-- Dynamic Pricing Summary Card -->
-                <div class="bg-gradient-to-br from-maroon-950 to-maroon-900 border-2 border-gold-400 rounded-2xl p-5 flex flex-col justify-between shadow-2xl">
-                    <div>
-                        <span id="lbl-ai-fair-rates" class="text-[11px] uppercase font-bold text-gold-400 tracking-widest block mb-3">
-                            ✨ AI Computed Fair Rates
-                        </span>
-
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center pb-2 border-b border-gold-500/20 text-xs">
-                                <span id="lbl-out-labor" class="text-stone-300">Direct Artisan Labor Payout:</span>
-                                <span id="out-labor" class="text-gold-300 font-bold">₹2,520</span>
-                            </div>
-
-                            <div class="flex justify-between items-center pb-2 border-b border-gold-500/20 text-xs">
-                                <span id="lbl-out-cost" class="text-stone-300">Base Production Cost:</span>
-                                <span id="out-cost" class="text-gold-300 font-bold">₹3,120</span>
-                            </div>
-
-                            <div class="p-3 rounded-xl bg-gold-500/15 border border-gold-500/30">
-                                <span id="lbl-out-msrp" class="text-[11px] text-stone-400 block">Recommended Retail (MSRP):</span>
-                                <span id="out-msrp" class="text-2xl font-extrabold text-gold-300 font-serif-heritage">₹3,890</span>
-                            </div>
-
-                            <div class="p-3 rounded-xl bg-maroon-950 border border-gold-500/20">
-                                <span id="lbl-out-b2b" class="text-[11px] text-stone-400 block">Wholesale B2B Rate (MOQ 50+):</span>
-                                <span id="out-b2b" class="text-lg font-bold text-gold-200">₹2,850 / unit</span>
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                    <!-- Product Image Container -->
+                    <div class="md:col-span-4 relative rounded-2xl overflow-hidden border-2 border-gold-500/40 bg-black/60 shadow-xl group">
+                        <img id="pcard-img" src="warli.png" alt="Product Image" class="w-full h-56 object-cover brightness-105 contrast-110">
+                        <div id="pcard-category-badge" class="absolute top-3 left-3 bg-maroon-950/90 text-gold-300 text-[10px] font-bold px-3 py-1 rounded-full border border-gold-500/30 backdrop-blur-md">
+                            🏷️ Warli Tribal Art
+                        </div>
+                        <div id="pcard-price" class="absolute bottom-3 right-3 bg-gold-500 text-maroon-950 text-base font-black px-3.5 py-1.5 rounded-xl shadow-xl font-mono">
+                            ₹3,890
                         </div>
                     </div>
 
-                    <div class="mt-4 pt-3 border-t border-gold-500/20 text-[11px] text-gold-300 flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield-check text-gold-400"></i> <span id="lbl-zero-comm"><strong>0% Commission Deductions</strong> — 100% Direct Settlement to Artisan Bank.</span>
+                    <!-- Recommended Details Breakdown Grid (All 14 Specified Fields) -->
+                    <div class="md:col-span-8 space-y-3 text-xs">
+                        <div class="border-b border-gold-500/20 pb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <div>
+                                <span class="text-[10px] uppercase font-extrabold text-gold-400 tracking-widest block">Product Name</span>
+                                <h4 id="pcard-name" class="text-lg font-extrabold text-gold-100 font-serif-heritage">Sacred Harvest Celebration Warli Canvas</h4>
+                            </div>
+                            <span id="pcard-craft" class="text-[11px] font-bold text-gold-300 bg-gold-500/15 px-2.5 py-1 rounded-lg border border-gold-500/30 self-start sm:self-auto">
+                                Warli Folk Art
+                            </span>
+                        </div>
+
+                        <!-- Short Description -->
+                        <div>
+                            <span class="text-[10px] uppercase font-extrabold text-stone-400 tracking-wider block mb-0.5">Short Description</span>
+                            <p id="pcard-desc" class="text-stone-300 text-[11px] leading-relaxed italic bg-maroon-950/60 p-2.5 rounded-xl border border-gold-500/15">
+                                "Handcrafted using organic rice paste and bamboo stylus. Depicts the traditional Tarpa harvest dance celebrating human harmony with nature."
+                            </p>
+                        </div>
+
+                        <!-- Grid of Specs & Provenance -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                            <div class="bg-maroon-950 p-2 rounded-xl border border-gold-500/20">
+                                <span class="text-stone-400 block text-[9px] uppercase font-bold">Material</span>
+                                <span id="pcard-material" class="font-bold text-gold-200">Rice Paste & Canvas</span>
+                            </div>
+                            <div class="bg-maroon-950 p-2 rounded-xl border border-gold-500/20">
+                                <span class="text-stone-400 block text-[9px] uppercase font-bold">Origin</span>
+                                <span id="pcard-origin" class="font-bold text-gold-200">Dahanu, Palghar, MH</span>
+                            </div>
+                            <div class="bg-maroon-950 p-2 rounded-xl border border-gold-500/20">
+                                <span class="text-stone-400 block text-[9px] uppercase font-bold">Artisan / Seller</span>
+                                <span id="pcard-seller" class="font-bold text-gold-200">Devu Patil & Clan</span>
+                            </div>
+                            <div class="bg-maroon-950 p-2 rounded-xl border border-gold-500/20">
+                                <span class="text-stone-400 block text-[9px] uppercase font-bold">GI / Certification</span>
+                                <span id="pcard-gi" class="font-bold text-emerald-400">GI Verified #MH-WARLI</span>
+                            </div>
+                            <div class="bg-maroon-950 p-2 rounded-xl border border-gold-500/20">
+                                <span class="text-stone-400 block text-[9px] uppercase font-bold">Dimensions / Size</span>
+                                <span id="pcard-size" class="font-bold text-gold-200">18 x 24 Inches</span>
+                            </div>
+                            <div class="bg-maroon-950 p-2 rounded-xl border border-gold-500/20">
+                                <span class="text-stone-400 block text-[9px] uppercase font-bold">Available Quantity</span>
+                                <span id="pcard-qty" class="font-bold text-amber-300">45 Units Ready</span>
+                            </div>
+                            <div class="bg-maroon-950 p-2 rounded-xl border border-gold-500/20">
+                                <span class="text-stone-400 block text-[9px] uppercase font-bold">Production Time</span>
+                                <span id="pcard-prodtime" class="font-bold text-gold-200">3–5 Days</span>
+                            </div>
+                            <div class="bg-maroon-950 p-2 rounded-xl border border-gold-500/20">
+                                <span class="text-stone-400 block text-[9px] uppercase font-bold">Customisation</span>
+                                <span id="pcard-custom" class="font-bold text-emerald-400">Available ✓</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex justify-end">
+                            <button onclick="openPublishModal()" class="py-2.5 px-6 rounded-xl bg-gradient-to-r from-gold-400 via-gold-500 to-amber-500 hover:from-gold-300 hover:to-amber-400 text-maroon-950 font-black text-xs shadow-lg shadow-gold-500/20 transition-all flex items-center gap-2 transform hover:scale-105">
+                                🚀 Publish Product (Normal or Bidding) →
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -880,114 +1000,29 @@
             <!-- Navigation Buttons -->
             <div class="mt-6 flex justify-between items-center">
                 <button onclick="setArtisanStep(3)" id="btn-back-step3" class="py-2.5 px-5 rounded-xl bg-maroon-950 border border-gold-500/30 text-gold-300 font-bold text-xs hover:border-gold-400">
-                    ← Back to Story Weaver
+                    ← Back to Pricing
                 </button>
                 <button onclick="setArtisanStep(5)" id="btn-proceed-step5" class="py-3 px-6 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 text-maroon-950 font-extrabold text-sm shadow-lg shadow-gold-500/20 transition-all flex items-center gap-2">
-                    Proceed to Step 5: Smart GI Tag →
+                    Proceed to Step 5: Buyer Chat & Sync →
                 </button>
             </div>
         </div>
 
         <!-- ================================================================= -->
-        <!-- ARTISAN STEP 5: SMART CRAFT & GI IDENTIFIER TAG -->
+        <!-- ARTISAN STEP 5: LIVE BUYER CHAT (WITH VOICE) + 1-CLICK SYNC -->
         <!-- ================================================================= -->
         <div id="artisan-step-5" class="artisan-step-content hidden bg-gradient-to-b from-maroon-900/95 to-maroon-850/95 border-2 border-gold-500/35 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl fade-in">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 id="step5-heading" class="text-xl sm:text-2xl font-bold text-gold-100 font-serif-heritage">
-                        🏷️ Step 5: Smart Craft & GI Identifier Tag
+                        💬 Step 5: Multilingual Live Buyer Chat & 1-Click Multi-Sync
                     </h2>
                     <p id="step5-sub" class="text-xs sm:text-sm text-stone-200 mt-1">
-                        AI verifies geographical authenticity, assigning digital GI credentials and tamper-proof provenance badge.
-                    </p>
-                </div>
-                <span class="text-xs font-bold text-gold-400 bg-gold-500/15 px-3 py-1 rounded-full border border-gold-500/30">
-                    Step 5 of 6
-                </span>
-            </div>
-
-            <!-- Digital GI Certificate Box -->
-            <div class="bg-gradient-to-br from-maroon-950 via-maroon-900 to-maroon-950 border-2 border-gold-400 rounded-3xl p-6 sm:p-8 relative shadow-2xl">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gold-500/30 pb-4 mb-6">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-full bg-gold-500 flex items-center justify-center text-maroon-950 text-xl font-bold shadow-lg">
-                            <i class="fa-solid fa-stamp"></i>
-                        </div>
-                        <div>
-                            <span id="lbl-official-provenance" class="text-[10px] uppercase tracking-widest text-gold-400 font-extrabold block">Official Digital Provenance</span>
-                            <h3 id="lbl-gi-cert-title" class="text-lg font-bold text-gold-100 font-serif-heritage">Geographical Indication (GI) Certificate</h3>
-                        </div>
-                    </div>
-                    <span class="text-xs font-mono font-bold text-maroon-950 bg-gold-300 px-3 py-1.5 rounded-lg">
-                        GI-TAG #MH-WARLI-2024-8842
-                    </span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-                    <div class="md:col-span-2 space-y-3 text-xs">
-                        <div class="flex justify-between pb-1.5 border-b border-gold-500/20">
-                            <span id="lbl-cert-craft" class="text-stone-400">Craft Name:</span>
-                            <span class="font-bold text-gold-200">Warli Painting of Maharashtra</span>
-                        </div>
-                        <div class="flex justify-between pb-1.5 border-b border-gold-500/20">
-                            <span id="lbl-cert-cluster" class="text-stone-400">Registered GI Cluster:</span>
-                            <span class="font-bold text-gold-200">Palghar & Dahanu District, Maharashtra</span>
-                        </div>
-                        <div class="flex justify-between pb-1.5 border-b border-gold-500/20">
-                            <span id="lbl-cert-motifs" class="text-stone-400">Recognized Motifs:</span>
-                            <span class="font-bold text-gold-200">Tarpa Circle, Sun & Moon Deities, Sacred Fauna</span>
-                        </div>
-                        <div class="flex justify-between pb-1.5 border-b border-gold-500/20">
-                            <span id="lbl-cert-medium" class="text-stone-400">Medium & Authenticity:</span>
-                            <span class="font-bold text-gold-200">100% Organic Rice Paste on Earth Canvas</span>
-                        </div>
-                        <div class="flex justify-between pb-1.5 border-b border-gold-500/20">
-                            <span id="lbl-cert-audit" class="text-stone-400">AI Cluster Verification:</span>
-                            <span id="val-cert-audit" class="font-bold text-emerald-400"><i class="fa-solid fa-circle-check"></i> Passed Strict Heritage Integrity Check</span>
-                        </div>
-                    </div>
-
-                    <!-- Digital QR Badge -->
-                    <div class="bg-maroon-950 p-4 rounded-2xl border border-gold-500/40 text-center flex flex-col items-center">
-                        <div class="w-28 h-28 bg-white p-2 rounded-xl flex items-center justify-center shadow-md">
-                            <div class="w-full h-full border-4 border-black p-1 grid grid-cols-4 gap-0.5 bg-black">
-                                <div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div>
-                                <div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div>
-                                <div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div><div class="bg-black"></div>
-                                <div class="bg-white"></div><div class="bg-black"></div><div class="bg-white"></div><div class="bg-white"></div>
-                            </div>
-                        </div>
-                        <span id="lbl-qr-scan" class="text-[10px] text-gold-300 font-bold mt-2 uppercase tracking-wider">Scan to Verify Provenance</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Navigation Buttons -->
-            <div class="mt-6 flex justify-between items-center">
-                <button onclick="setArtisanStep(4)" id="btn-back-step4" class="py-2.5 px-5 rounded-xl bg-maroon-950 border border-gold-500/30 text-gold-300 font-bold text-xs hover:border-gold-400">
-                    ← Back to Pricing
-                </button>
-                <button onclick="setArtisanStep(6)" id="btn-proceed-step6" class="py-3 px-6 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 text-maroon-950 font-extrabold text-sm shadow-lg shadow-gold-500/20 transition-all flex items-center gap-2">
-                    Proceed to Step 6: Buyer Chat & Sync →
-                </button>
-            </div>
-        </div>
-
-        <!-- ================================================================= -->
-        <!-- ARTISAN STEP 6: LIVE BUYER CHAT (WITH VOICE) + 1-CLICK SYNC + PUBLISH -->
-        <!-- ================================================================= -->
-        <div id="artisan-step-6" class="artisan-step-content hidden bg-gradient-to-b from-maroon-900/95 to-maroon-850/95 border-2 border-gold-500/35 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl fade-in">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 id="step6-heading" class="text-xl sm:text-2xl font-bold text-gold-100 font-serif-heritage">
-                        💬 Step 6: Multilingual Live Buyer Chat & 1-Click Multi-Sync
-                    </h2>
-                    <p id="step6-sub" class="text-xs sm:text-sm text-stone-200 mt-1">
                         Chat directly with global wholesale buyers using voice/text and syndicate your craft with <strong>1 single click</strong>!
                     </p>
                 </div>
                 <span class="text-xs font-bold text-gold-400 bg-gold-500/15 px-3 py-1 rounded-full border border-gold-500/30">
-                    Step 6 of 6
+                    Step 5 of 5
                 </span>
             </div>
 
@@ -1159,10 +1194,10 @@
                 </div>
             </div>
 
-            <!-- Back to Step 5 -->
+            <!-- Back to Step 4 -->
             <div class="mt-6">
-                <button onclick="setArtisanStep(5)" id="btn-back-step5" class="py-2.5 px-5 rounded-xl bg-maroon-950 border border-gold-500/30 text-gold-300 font-bold text-xs hover:border-gold-400">
-                    ← Back to GI Tag
+                <button onclick="setArtisanStep(4)" id="btn-back-step4" class="py-2.5 px-5 rounded-xl bg-maroon-950 border border-gold-500/30 text-gold-300 font-bold text-xs hover:border-gold-400">
+                    ← Back to Product Card
                 </button>
             </div>
         </div>
@@ -1608,16 +1643,42 @@
 
 
     <!-- ========================================================================= -->
+    <!-- MOBILE APP BOTTOM NAVIGATION BAR (FIXED ON SMARTPHONES) -->
+    <!-- ========================================================================= -->
+    <nav id="mobile-app-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-maroon-950/95 border-t border-gold-500/30 backdrop-blur-xl px-2 py-2 flex justify-around items-center text-[10px] text-stone-300 font-bold shadow-2xl">
+        <button onclick="navigateTo('landing')" id="mob-nav-home" class="flex flex-col items-center gap-1 p-1.5 rounded-xl text-gold-300 hover:text-gold-100 active:scale-95 transition-all">
+            <i class="fa-solid fa-house text-base"></i>
+            <span>Home</span>
+        </button>
+        <button onclick="navigateTo('artisan')" id="mob-nav-artisan" class="flex flex-col items-center gap-1 p-1.5 rounded-xl text-stone-300 hover:text-gold-100 active:scale-95 transition-all">
+            <i class="fa-solid fa-wand-magic-sparkles text-base text-gold-400"></i>
+            <span>Artisan</span>
+        </button>
+        <button onclick="navigateTo('b2b')" id="mob-nav-b2b" class="flex flex-col items-center gap-1 p-1.5 rounded-xl text-stone-300 hover:text-gold-100 active:scale-95 transition-all">
+            <i class="fa-solid fa-building text-base text-gold-400"></i>
+            <span>B2B Hub</span>
+        </button>
+        <button onclick="toggleSahayakBot()" id="mob-nav-bot" class="flex flex-col items-center gap-1 p-1.5 rounded-xl text-stone-300 hover:text-gold-100 active:scale-95 transition-all">
+            <i class="fa-solid fa-robot text-base text-amber-400"></i>
+            <span>Sahayak</span>
+        </button>
+        <button onclick="navigateTo('login')" id="mob-nav-profile" class="flex flex-col items-center gap-1 p-1.5 rounded-xl text-stone-300 hover:text-gold-100 active:scale-95 transition-all">
+            <i class="fa-solid fa-user text-base text-gold-400"></i>
+            <span>Account</span>
+        </button>
+    </nav>
+
+    <!-- ========================================================================= -->
     <!-- FLOATING ARTISAN AI BOT ("VISTAR SAHAYAK") -->
     <!-- ========================================================================= -->
-    <div id="sahayak-bot-wrapper" class="fixed bottom-6 right-6 z-40">
+    <div id="sahayak-bot-wrapper" class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40">
         <!-- Bot Circular Launcher Button -->
-        <button onclick="toggleSahayakBot()" id="btn-bot-launcher" class="w-16 h-16 rounded-full bg-gradient-to-br from-gold-300 via-gold-500 to-amber-600 text-maroon-950 text-2xl flex items-center justify-center shadow-2xl shadow-gold-500/50 hover:scale-110 transition-all bot-pulse cursor-pointer border-2 border-gold-200">
+        <button onclick="toggleSahayakBot()" id="btn-bot-launcher" class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-gold-300 via-gold-500 to-amber-600 text-maroon-950 text-xl sm:text-2xl flex items-center justify-center shadow-2xl shadow-gold-500/50 hover:scale-110 transition-all bot-pulse cursor-pointer border-2 border-gold-200">
             <i class="fa-solid fa-robot"></i>
         </button>
 
         <!-- Bot Chat Drawer / Window -->
-        <div id="sahayak-chat-drawer" class="hidden absolute bottom-20 right-0 w-80 sm:w-96 rounded-3xl bg-gradient-to-b from-maroon-900/98 via-maroon-850/95 to-maroon-950/98 border-2 border-gold-400 shadow-2xl backdrop-blur-2xl overflow-hidden fade-in text-left">
+        <div id="sahayak-chat-drawer" class="hidden absolute bottom-18 sm:bottom-20 right-0 w-[calc(100vw-32px)] max-w-sm sm:w-96 rounded-3xl bg-gradient-to-b from-maroon-900/98 via-maroon-850/95 to-maroon-950/98 border-2 border-gold-400 shadow-2xl backdrop-blur-2xl overflow-hidden fade-in text-left">
             <!-- Bot Header -->
             <div class="bg-maroon-950/90 p-4 border-b border-gold-500/30 flex justify-between items-center">
                 <div class="flex items-center gap-2.5">
@@ -1673,7 +1734,7 @@
 
 
     <!-- 5. FOOTER -->
-    <footer class="relative z-10 py-5 px-6 text-center text-xs text-stone-400 border-t border-gold-500/30 bg-maroon-950/90 backdrop-blur-md flex flex-col sm:flex-row justify-between items-center max-w-7xl mx-auto w-full gap-2">
+    <footer class="relative z-10 py-5 px-6 pb-24 md:pb-5 text-center text-xs text-stone-400 border-t border-gold-500/30 bg-maroon-950/90 backdrop-blur-md flex flex-col sm:flex-row justify-between items-center max-w-7xl mx-auto w-full gap-2">
         <span>© <span id="year"></span> Vistar Kala. All Rights Reserved.</span>
         <span id="txt-footer" class="text-gold-300 font-medium italic">Empowering Warli, Handloom, Pottery & Traditional Crafts</span>
     </footer>
@@ -2410,6 +2471,26 @@
                 headerLinks.classList.remove('hidden');
             }
 
+            // Update mobile bottom navbar active highlight
+            const mobTabs = {
+                'landing': 'mob-nav-home',
+                'artisan': 'mob-nav-artisan',
+                'b2b': 'mob-nav-b2b',
+                'login': 'mob-nav-profile'
+            };
+            Object.keys(mobTabs).forEach(k => {
+                const btn = document.getElementById(mobTabs[k]);
+                if (btn) {
+                    if (k === viewId) {
+                        btn.classList.add('text-gold-300');
+                        btn.classList.remove('text-stone-300');
+                    } else {
+                        btn.classList.remove('text-gold-300');
+                        btn.classList.add('text-stone-300');
+                    }
+                }
+            });
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -2515,7 +2596,7 @@
         // ARTISAN STEP CONTROLLER
         function setArtisanStep(stepNumber) {
             currentArtisanStep = stepNumber;
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= 5; i++) {
                 const stepEl = document.getElementById('artisan-step-' + i);
                 const tabBtn = document.getElementById('step-tab-' + i);
                 if (stepEl && tabBtn) {
@@ -2531,6 +2612,29 @@
             window.scrollTo({ top: 180, behavior: 'smooth' });
         }
 
+        function updateLiveProductCard() {
+            const title = document.getElementById('cat-title') ? document.getElementById('cat-title').value : '';
+            const medium = document.getElementById('cat-medium') ? document.getElementById('cat-medium').value : '';
+            const specs = document.getElementById('cat-specs') ? document.getElementById('cat-specs').value : '';
+
+            ['pcard-name', 'pcard-name-top'].forEach(id => {
+                if (title && document.getElementById(id)) document.getElementById(id).innerText = title;
+            });
+            ['pcard-material', 'pcard-material-top'].forEach(id => {
+                if (medium && document.getElementById(id)) document.getElementById(id).innerText = medium;
+            });
+            ['pcard-size', 'pcard-size-top'].forEach(id => {
+                if (specs && document.getElementById(id)) document.getElementById(id).innerText = specs;
+            });
+        }
+
+        function setPcardField(baseId, val) {
+            const el1 = document.getElementById(baseId);
+            const el2 = document.getElementById(baseId + '-top');
+            if (el1) el1.innerText = val;
+            if (el2) el2.innerText = val;
+        }
+
         function selectCraftSample(craftKey) {
             const btns = ['warli', 'ikat', 'pottery', 'dhokra'];
             btns.forEach(b => {
@@ -2544,24 +2648,70 @@
 
             const beforeImg = document.getElementById('img-src-before');
             const afterImg = document.getElementById('img-src-after');
+            const pcardImg = document.getElementById('pcard-img');
+            const pcardImgTop = document.getElementById('pcard-img-top');
             const titleInput = document.getElementById('cat-title');
             const mediumInput = document.getElementById('cat-medium');
+            const specsInput = document.getElementById('cat-specs');
 
             if (craftKey === 'warli') {
-                beforeImg.src = 'warli.png';
-                afterImg.src = 'warli.png';
-                titleInput.value = "Sacred Harvest Celebration Warli Canvas";
-                mediumInput.value = "Warli Tribal Art on Handspun Canvas";
+                if (beforeImg) beforeImg.src = 'warli.png';
+                if (afterImg) afterImg.src = 'warli.png';
+                if (pcardImg) pcardImg.src = 'warli.png';
+                if (pcardImgTop) pcardImgTop.src = 'warli.png';
+                if (titleInput) titleInput.value = "Sacred Harvest Celebration Warli Canvas";
+                if (mediumInput) mediumInput.value = "Organic Rice Paste & Earth Canvas";
+                if (specsInput) specsInput.value = "18 x 24 Inches (Hand-stretched)";
+
+                setPcardField('pcard-craft', 'Warli Folk Art');
+                if (document.getElementById('pcard-craft-tag-top')) document.getElementById('pcard-craft-tag-top').innerText = "Craft: Warli Folk Art";
+                setPcardField('pcard-origin', 'Dahanu, Palghar, MH');
+                setPcardField('pcard-seller', 'Devu Patil & Clan');
+                setPcardField('pcard-gi', 'GI Verified #MH-WARLI');
+                setPcardField('pcard-price', '₹3,890');
+                setPcardField('pcard-qty', '45 Units Ready');
+                setPcardField('pcard-desc', `"Handcrafted using organic rice paste and bamboo stylus. Depicts the traditional Tarpa harvest dance celebrating human harmony with nature."`);
             } else if (craftKey === 'ikat') {
-                titleInput.value = "Pochampally Double Ikat Pure Silk Fabric";
-                mediumInput.value = "Natural Resist-Dyed Handloom Silk";
+                if (titleInput) titleInput.value = "Pochampally Double Ikat Pure Silk Saree";
+                if (mediumInput) mediumInput.value = "Natural Resist-Dyed Handloom Silk";
+                if (specsInput) specsInput.value = "6.5 Meters (Includes Blouse)";
+
+                setPcardField('pcard-craft', 'Handloom Weaving');
+                if (document.getElementById('pcard-craft-tag-top')) document.getElementById('pcard-craft-tag-top').innerText = "Craft: Handloom Weaving";
+                setPcardField('pcard-origin', 'Bhoodan Pochampally, TS');
+                setPcardField('pcard-seller', 'Konda Weavers Collective');
+                setPcardField('pcard-gi', 'GI Verified #TS-IKAT');
+                setPcardField('pcard-price', '₹8,450');
+                setPcardField('pcard-qty', '18 Pieces Ready');
+                setPcardField('pcard-desc', `"Authentic double ikat handwoven silk saree dyed with natural mineral pigments. Intricate geometric motifs created by master loom weavers."`);
             } else if (craftKey === 'pottery') {
-                titleInput.value = "Jaipur Traditional Blue Pottery Floral Urn";
-                mediumInput.value = "Quartz & Fuller Earth Glazed Ceramic";
+                if (titleInput) titleInput.value = "Jaipur Traditional Blue Pottery Royal Urn";
+                if (mediumInput) mediumInput.value = "Quartz & Fuller Earth Glazed Ceramic";
+                if (specsInput) specsInput.value = "12 x 16 Inches (Hand-glazed)";
+
+                setPcardField('pcard-craft', 'Glazed Pottery');
+                if (document.getElementById('pcard-craft-tag-top')) document.getElementById('pcard-craft-tag-top').innerText = "Craft: Glazed Pottery";
+                setPcardField('pcard-origin', 'Kot Jewar, Jaipur, RJ');
+                setPcardField('pcard-seller', 'Kripal Pottery Guild');
+                setPcardField('pcard-gi', 'GI Verified #RJ-BLUEPOT');
+                setPcardField('pcard-price', '₹2,750');
+                setPcardField('pcard-qty', '25 Units Ready');
+                setPcardField('pcard-desc', `"Traditional low-fired turquoise blue pottery made using quartz powder and oxide glazes. No clay used—100% hand-painted floral arabesque motifs."`);
             } else if (craftKey === 'dhokra') {
-                titleInput.value = "Bastar Tribal Dhokra Lost-Wax Brass Figurine";
-                mediumInput.value = "Hand-Cast Bell Metal Brass Alloy";
+                if (titleInput) titleInput.value = "Bastar Tribal Dhokra Lost-Wax Bell Metal Figurine";
+                if (mediumInput) mediumInput.value = "Hand-Cast Bell Metal Brass Alloy";
+                if (specsInput) specsInput.value = "10 x 8 Inches (Solid Brass)";
+
+                setPcardField('pcard-craft', 'Lost-Wax Metal Craft');
+                if (document.getElementById('pcard-craft-tag-top')) document.getElementById('pcard-craft-tag-top').innerText = "Craft: Lost-Wax Metal Craft";
+                setPcardField('pcard-origin', 'Kondagaon, Bastar, CG');
+                setPcardField('pcard-seller', 'Jaidev Baghel Clan');
+                setPcardField('pcard-gi', 'GI Verified #CG-DHOKRA');
+                setPcardField('pcard-price', '₹4,200');
+                setPcardField('pcard-qty', '12 Figurine Units');
+                setPcardField('pcard-desc', `"Non-ferrous metal casting using 4,000-year-old lost-wax technique. Hand-coiled beeswax patterns cast in molten bell-metal alloy."`);
             }
+            updateLiveProductCard();
         }
 
         function toggleVoiceRecording() {
@@ -2687,32 +2837,53 @@
         }
 
         function calculatePricing() {
-            const material = parseInt(document.getElementById('slider-material').value);
-            const hours = parseInt(document.getElementById('slider-hours').value);
-            const wage = parseInt(document.getElementById('slider-wage').value);
-            const pack = parseInt(document.getElementById('slider-pack').value);
+            const material = parseInt(document.getElementById('slider-material') ? document.getElementById('slider-material').value : 450);
+            const artisans = parseInt(document.getElementById('slider-artisans') ? document.getElementById('slider-artisans').value : 1);
+            const hours = parseInt(document.getElementById('slider-hours') ? document.getElementById('slider-hours').value : 14);
+            const wage = parseInt(document.getElementById('sel-skill-level') ? document.getElementById('sel-skill-level').value : 180);
+            const pack = parseInt(document.getElementById('slider-pack') ? document.getElementById('slider-pack').value : 150);
+            const trendMult = parseFloat(document.getElementById('sel-market-trend') ? document.getElementById('sel-market-trend').value : 1.0);
+            const complexityMult = parseFloat(document.getElementById('sel-complexity') ? document.getElementById('sel-complexity').value : 1.15);
 
-            document.getElementById('val-material').innerText = "₹" + material.toLocaleString();
-            document.getElementById('val-hours').innerText = hours + " Hours";
-            document.getElementById('val-wage').innerText = "₹" + wage + " / hr";
-            document.getElementById('val-pack').innerText = "₹" + pack.toLocaleString();
+            if (document.getElementById('val-material')) document.getElementById('val-material').innerText = "₹" + material.toLocaleString();
+            if (document.getElementById('val-artisans-cnt')) document.getElementById('val-artisans-cnt').innerText = artisans + (artisans > 1 ? " Artisans" : " Artisan");
+            if (document.getElementById('val-hours')) document.getElementById('val-hours').innerText = hours + " Hours";
+            if (document.getElementById('val-labor-summary')) document.getElementById('val-labor-summary').innerText = (artisans * hours) + " Hrs @ ₹" + wage + "/hr";
+            if (document.getElementById('val-pack')) document.getElementById('val-pack').innerText = "₹" + pack.toLocaleString();
+            
+            const totalEstDays = Math.max(1, (Math.round((artisans * hours / 6) * 10) / 10));
+            if (document.getElementById('val-days-req')) document.getElementById('val-days-req').innerText = totalEstDays + " Days Total";
 
-            const laborTotal = hours * wage;
+            const laborTotal = artisans * hours * wage;
             const baseCost = material + laborTotal + pack;
-            const msrp = Math.round(baseCost * 1.25);
-            const b2bRate = Math.round(baseCost * 0.92);
+            const combinedMultiplier = trendMult * complexityMult;
+            const msrp = Math.round(baseCost * combinedMultiplier);
+            const marketPremium = msrp - baseCost;
+            const b2bRate = Math.round(msrp * 0.74);
 
-            document.getElementById('out-labor').innerText = "₹" + laborTotal.toLocaleString();
-            document.getElementById('out-cost').innerText = "₹" + baseCost.toLocaleString();
-            document.getElementById('out-msrp').innerText = "₹" + msrp.toLocaleString();
-            document.getElementById('out-b2b').innerText = "₹" + b2bRate.toLocaleString() + " / unit";
+            if (document.getElementById('out-labor')) document.getElementById('out-labor').innerText = "₹" + laborTotal.toLocaleString();
+            if (document.getElementById('out-cost')) document.getElementById('out-cost').innerText = "₹" + baseCost.toLocaleString();
+            if (document.getElementById('out-market-premium')) document.getElementById('out-market-premium').innerText = "+₹" + Math.max(0, marketPremium).toLocaleString();
+            if (document.getElementById('out-msrp')) document.getElementById('out-msrp').innerText = "₹" + msrp.toLocaleString();
+            if (document.getElementById('out-b2b')) document.getElementById('out-b2b').innerText = "₹" + b2bRate.toLocaleString() + " / unit";
+            ['pcard-price', 'pcard-price-top'].forEach(id => {
+                if (document.getElementById(id)) document.getElementById(id).innerText = "₹" + msrp.toLocaleString();
+            });
+
+            // Sync Publish Modal figures dynamically
+            if (document.getElementById('pub-normal-msrp')) document.getElementById('pub-normal-msrp').innerText = "₹" + msrp.toLocaleString();
+            if (document.getElementById('pub-normal-b2b')) document.getElementById('pub-normal-b2b').innerText = "₹" + b2bRate.toLocaleString() + " / unit";
+            const startBid = Math.round(msrp * 0.65);
+            const reserveBid = Math.round(msrp * 0.90);
+            if (document.getElementById('pub-bid-start')) document.getElementById('pub-bid-start').innerText = "₹" + startBid.toLocaleString();
+            if (document.getElementById('pub-bid-reserve')) document.getElementById('pub-bid-reserve').innerText = "₹" + reserveBid.toLocaleString();
         }
 
         function publishCraftListing() {
             if (typeof confetti === 'function') {
                 confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
             }
-            alert("🎉 Success! Your craft has been verified, GI-tagged, and published to the Vistar Kala Global B2B Marketplace.");
+            alert("🎉 Success! Your craft has been verified, price-balanced, and published to the Vistar Kala Global B2B Marketplace.");
             navigateTo('b2b');
         }
 
@@ -2964,6 +3135,123 @@
             container.insertAdjacentHTML('beforeend', html);
             container.scrollTop = container.scrollHeight;
         }
+
+        // PUBLISHING MODAL CONTROLLER (NORMAL vs LIVE HERITAGE BIDDING)
+        function openPublishModal() {
+            const modal = document.getElementById('modal-publish-type');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closePublishModal() {
+            const modal = document.getElementById('modal-publish-type');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function confirmPublishMode(mode) {
+            closePublishModal();
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
+            if (mode === 'normal') {
+                alert("🎉 Success! Your craft has been published as a NORMAL FIXED PRICE LISTING (MSRP ₹3,890 / B2B ₹2,850) on Vistar Kala Marketplace & 5 Omni-Channel Networks.");
+            } else {
+                alert("🔨 Success! Your craft has been launched as a LIVE HERITAGE BIDDING AUCTION!\n\n• Starting Bid: ₹2,500\n• Reserve Price: ₹3,500\n• Live Bidding Window: 7 Days\n\nYour listing is now open for live competitive bids from international art collectors and museum curators!");
+            }
+            navigateTo('b2b');
+        }
     </script>
+
+    <!-- ========================================================================= -->
+    <!-- PUBLISHING MODE SELECTION MODAL (NORMAL vs LIVE HERITAGE BIDDING AUCTION) -->
+    <!-- ========================================================================= -->
+    <div id="modal-publish-type" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 fade-in">
+        <div class="bg-gradient-to-br from-maroon-950 via-maroon-900 to-maroon-950 border-2 border-gold-400 rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative text-left">
+            <button onclick="closePublishModal()" class="absolute top-4 right-4 text-stone-400 hover:text-gold-300 text-xl font-bold">
+                ✕
+            </button>
+
+            <div class="flex items-center gap-3 border-b border-gold-500/30 pb-4 mb-5">
+                <div class="w-12 h-12 rounded-2xl bg-gold-500 text-maroon-950 text-2xl font-black flex items-center justify-center shadow-lg">
+                    🚀
+                </div>
+                <div>
+                    <span class="text-[11px] uppercase tracking-widest text-gold-400 font-extrabold block">Vistar Kala Artisan Portal</span>
+                    <h3 class="text-xl font-extrabold text-gold-100 font-serif-heritage">Select Publishing & Sales Mode</h3>
+                </div>
+            </div>
+
+            <p class="text-xs text-stone-200 mb-5 leading-relaxed">
+                How would you like to present this craft to buyers on Vistar Kala B2B Wholesale Hub and multi-channel networks (Amazon, Flipkart, Etsy, ONDC, Shopify)?
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+                <!-- Option 1: Normal Fixed Price Listing -->
+                <div class="bg-maroon-950/90 border-2 border-gold-500/40 rounded-2xl p-5 hover:border-gold-400 transition-all flex flex-col justify-between cursor-pointer group shadow-xl hover:scale-[1.02]" onclick="confirmPublishMode('normal')">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-extrabold text-gold-300 flex items-center gap-2">
+                                🏷️ Normal Fixed Price
+                            </span>
+                            <span class="text-[10px] bg-gold-500/20 text-gold-300 font-bold px-2.5 py-1 rounded-full border border-gold-500/30">Instant Sale</span>
+                        </div>
+                        <p class="text-xs text-stone-300 leading-relaxed mb-3">
+                            Direct e-commerce & B2B listing with fixed MSRP and wholesale bulk tiers.
+                        </p>
+                        <div class="bg-maroon-900/80 p-2.5 rounded-xl border border-gold-500/20 text-xs space-y-1">
+                            <div class="flex justify-between text-[11px]">
+                                <span class="text-stone-400">Fixed MSRP:</span>
+                                <span id="pub-normal-msrp" class="font-bold text-gold-300">₹3,890</span>
+                            </div>
+                            <div class="flex justify-between text-[11px]">
+                                <span class="text-stone-400">Wholesale B2B:</span>
+                                <span id="pub-normal-b2b" class="font-bold text-gold-200">₹2,850 / unit</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="confirmPublishMode('normal')" class="mt-4 w-full py-2.5 rounded-xl bg-gold-500 hover:bg-gold-400 text-maroon-950 font-black text-xs shadow-md transition-all">
+                        Publish Fixed Price Listing →
+                    </button>
+                </div>
+
+                <!-- Option 2: Live Heritage Bidding / Auction -->
+                <div class="bg-maroon-950/90 border-2 border-amber-500/60 rounded-2xl p-5 hover:border-amber-400 transition-all flex flex-col justify-between cursor-pointer group shadow-xl hover:scale-[1.02]" onclick="confirmPublishMode('bidding')">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-extrabold text-amber-300 flex items-center gap-2">
+                                🔨 Live Heritage Bidding
+                            </span>
+                            <span class="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-2.5 py-1 rounded-full border border-amber-500/40 animate-pulse">Auction Mode</span>
+                        </div>
+                        <p class="text-xs text-stone-300 leading-relaxed mb-3">
+                            Target global collectors & museum curators in a competitive 7-day bidding auction.
+                        </p>
+                        <div class="bg-maroon-900/80 p-2.5 rounded-xl border border-amber-500/30 text-xs space-y-1">
+                            <div class="flex justify-between text-[11px]">
+                                <span class="text-stone-400">Starting Bid:</span>
+                                <span id="pub-bid-start" class="font-bold text-amber-300">₹2,500</span>
+                            </div>
+                            <div class="flex justify-between text-[11px]">
+                                <span class="text-stone-400">Reserve Price:</span>
+                                <span id="pub-bid-reserve" class="font-bold text-gold-300">₹3,500</span>
+                            </div>
+                            <div class="flex justify-between text-[11px]">
+                                <span class="text-stone-400">Auction Window:</span>
+                                <span class="font-bold text-emerald-400">7 Days Live</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="confirmPublishMode('bidding')" class="mt-4 w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-gold-500 to-amber-500 hover:from-amber-300 hover:to-gold-400 text-maroon-950 font-black text-xs shadow-md transition-all">
+                        Launch Live Heritage Bidding →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
