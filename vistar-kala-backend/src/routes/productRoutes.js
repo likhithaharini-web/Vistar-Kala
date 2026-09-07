@@ -5,12 +5,15 @@ const { authenticate, optionalAuthenticate } = require('../middleware/auth');
 const { requireRole } = require('../middleware/role');
 const validate = require('../middleware/validate');
 
+const { upload } = require('../services/cloudinaryService');
+
 const router = express.Router();
 
 router.post(
   '/products',
   authenticate,
   requireRole('artisan'),
+  upload.single('image'),
   [body('name').isString().notEmpty()],
   validate,
   productController.createProduct,

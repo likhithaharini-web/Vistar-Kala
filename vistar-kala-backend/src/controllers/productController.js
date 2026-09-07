@@ -23,7 +23,7 @@ const createProduct = asyncHandler(async (req, res) => {
     isHandmade,
     isGI,
     price,
-    images, // optional array of URLs at creation time
+    images, // optional array of URLs
   } = req.body;
 
   if (!name) throw new ApiError(400, 'name is required');
@@ -49,8 +49,14 @@ const createProduct = asyncHandler(async (req, res) => {
     status: 'DRAFT',
   });
 
+  // Handle existing JSON array format
   if (Array.isArray(images)) {
     await Promise.all(images.map((url) => ProductImage.create({ productId: product.id, url, type: 'ORIGINAL' })));
+  }
+
+  // Handle multipart form upload via Cloudinary (req.file)
+  if (req.file && req.file.path) {
+    await ProductImage.create({ productId: product.id, url: req.file.path, type: 'ORIGINAL' });
   }
 
   const full = await Product.findByPk(product.id, { include: [{ model: ProductImage, as: 'images' }] });
