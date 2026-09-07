@@ -6,13 +6,24 @@ const validate = require('../middleware/validate');
 
 const router = express.Router();
 
-router.post('/auth/send-otp', [body('phone').isString().notEmpty()], validate, authController.sendOtp);
+router.post(
+  '/auth/register',
+  [
+    body('phone').isString().notEmpty().withMessage('phone is required'),
+    body('password').isString().isLength({ min: 8 }).withMessage('password must be at least 8 characters long'),
+  ],
+  validate,
+  authController.register,
+);
 
 router.post(
-  '/auth/verify-otp',
-  [body('phone').isString().notEmpty(), body('code').isString().notEmpty()],
+  '/auth/login',
+  [
+    body('phone').isString().notEmpty().withMessage('phone is required'),
+    body('password').isString().notEmpty().withMessage('password is required'),
+  ],
   validate,
-  authController.verifyOtp,
+  authController.login,
 );
 
 router.get('/user/profile', authenticate, authController.getProfile);

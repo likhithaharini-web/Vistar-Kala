@@ -1,0 +1,423 @@
+{
+  "info": {
+    "name": "Vistar Kala API",
+    "description": "Complete API collection for the Vistar Kala backend. Set the `baseUrl` variable (defaults to http://localhost:5000/api). Run 'Auth > Send OTP (Artisan)' then 'Auth > Verify OTP (Artisan)' first - the token is captured automatically into {{artisanToken}}. Do the same for the buyer requests to get {{buyerToken}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api" },
+    { "key": "artisanPhone", "value": "+919810000001" },
+    { "key": "buyerPhone", "value": "+919820000001" },
+    { "key": "artisanOtp", "value": "" },
+    { "key": "buyerOtp", "value": "" },
+    { "key": "artisanToken", "value": "" },
+    { "key": "buyerToken", "value": "" },
+    { "key": "productId", "value": "PROD_1001" },
+    { "key": "auctionId", "value": "AUC_2001" },
+    { "key": "requirementId", "value": "REQ_4001" },
+    { "key": "reverseBidId", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "notificationId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": { "method": "GET", "url": "{{baseUrl}}/health" }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Send OTP (Artisan)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const json = pm.response.json();",
+            "if (json.success) { pm.collectionVariables.set('artisanOtp', json.data.devOtp); }"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/send-otp",
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"{{artisanPhone}}\"\n}" }
+          }
+        },
+        {
+          "name": "Verify OTP (Artisan)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const json = pm.response.json();",
+            "if (json.success) { pm.collectionVariables.set('artisanToken', json.data.token); }"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/verify-otp",
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"{{artisanPhone}}\",\n  \"otp\": \"{{artisanOtp}}\"\n}" }
+          }
+        },
+        {
+          "name": "Send OTP (Buyer)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const json = pm.response.json();",
+            "if (json.success) { pm.collectionVariables.set('buyerOtp', json.data.devOtp); }"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/send-otp",
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"{{buyerPhone}}\"\n}" }
+          }
+        },
+        {
+          "name": "Verify OTP (Buyer)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const json = pm.response.json();",
+            "if (json.success) { pm.collectionVariables.set('buyerToken', json.data.token); }"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/verify-otp",
+            "body": { "mode": "raw", "raw": "{\n  \"phone\": \"{{buyerPhone}}\",\n  \"otp\": \"{{buyerOtp}}\"\n}" }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{artisanToken}}" }],
+            "url": "{{baseUrl}}/auth/profile"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{artisanToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/auth/profile",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Lakshmi Devi\",\n  \"profile\": { \"bio\": \"Updated bio text\" }\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{artisanToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/products",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Hand-Painted Kalamkari Scarf\",\n  \"category\": \"Kalamkari Products\",\n  \"material\": \"Cotton, Natural Dyes\",\n  \"craftType\": \"Kalamkari Pen Art\",\n  \"origin\": \"Srikalahasti, Andhra Pradesh\",\n  \"description\": \"A hand-painted cotton scarf using traditional Kalamkari technique.\",\n  \"shortDescription\": \"Hand-painted Kalamkari scarf.\",\n  \"features\": [\"Natural dyes\", \"Hand-painted\"],\n  \"keywords\": [\"kalamkari\", \"scarf\"],\n  \"quantity\": 10,\n  \"dimensions\": \"180cm x 70cm\",\n  \"productionTime\": \"5 days\",\n  \"customizationAvailable\": true,\n  \"price\": 1500\n}" }
+          }
+        },
+        {
+          "name": "List Products (search & filter)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/products?category=Pottery&minPrice=100&maxPrice=2000"
+          }
+        },
+        {
+          "name": "Get Product By Id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/products/{{productId}}" }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{artisanToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/products/{{productId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"price\": 19500\n}" }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{artisanToken}}" }],
+            "url": "{{baseUrl}}/products/{{productId}}"
+          }
+        },
+        {
+          "name": "Upload Product Image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{artisanToken}}" }],
+            "url": "{{baseUrl}}/products/{{productId}}/images",
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "image", "type": "file", "src": "" }]
+            }
+          }
+        },
+        {
+          "name": "Get Product Authentication",
+          "request": { "method": "GET", "url": "{{baseUrl}}/products/{{productId}}/authentication" }
+        },
+        {
+          "name": "Submit Product Authentication",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{artisanToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/products/{{productId}}/authentication",
+            "body": { "mode": "raw", "raw": "{\n  \"artisanVerification\": \"VERIFIED\",\n  \"originVerification\": \"VERIFIED\",\n  \"giStatus\": \"GI Registered\",\n  \"verificationSource\": \"State Handicrafts Board\",\n  \"verificationDate\": \"2026-01-01\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI",
+      "item": [
+        {
+          "name": "Enhance Image",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{artisanToken}}" }],
+            "url": "{{baseUrl}}/ai/enhance-image",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": "" },
+                { "key": "productId", "type": "text", "value": "{{productId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Catalogue",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{artisanToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/ai/catalogue",
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"idi oka matti kుండ, chala baguntundi, chethi pani\",\n  \"language\": \"Telugu\"\n}" }
+          }
+        },
+        {
+          "name": "Transcribe Audio",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{artisanToken}}" }],
+            "url": "{{baseUrl}}/ai/transcribe",
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "audio", "type": "file", "src": "" }]
+            }
+          }
+        },
+        {
+          "name": "Calculate Fair Price",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{artisanToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/ai/fair-price",
+            "body": { "mode": "raw", "raw": "{\n  \"materialCost\": 1000,\n  \"artisansInvolved\": 2,\n  \"labourHours\": 20,\n  \"productionTime\": 5,\n  \"craftsmanshipComplexity\": \"High\",\n  \"authenticityCertification\": \"GI Verified\",\n  \"currentMarketPrice\": 2500,\n  \"marketDemand\": \"High\",\n  \"additionalCosts\": 200\n}" }
+          }
+        },
+        {
+          "name": "Match Artisans",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/ai/match-artisans",
+            "body": { "mode": "raw", "raw": "{\n  \"requirementId\": \"{{requirementId}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auctions",
+      "item": [
+        {
+          "name": "Create Auction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{artisanToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/auctions",
+            "body": { "mode": "raw", "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"basePrice\": 18000,\n  \"minimumBidIncrement\": 500,\n  \"startTime\": \"2026-01-01T00:00:00.000Z\",\n  \"endTime\": \"2027-01-01T00:00:00.000Z\",\n  \"quantity\": 1,\n  \"preparationTime\": \"7 days\"\n}" }
+          }
+        },
+        {
+          "name": "List Auctions",
+          "request": { "method": "GET", "url": "{{baseUrl}}/auctions?status=ACTIVE" }
+        },
+        {
+          "name": "Get Auction By Id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/auctions/{{auctionId}}" }
+        },
+        {
+          "name": "Place Bid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/auctions/{{auctionId}}/bids",
+            "body": { "mode": "raw", "raw": "{\n  \"bidAmount\": 21700\n}" }
+          }
+        },
+        {
+          "name": "List Bids For Auction",
+          "request": { "method": "GET", "url": "{{baseUrl}}/auctions/{{auctionId}}/bids" }
+        }
+      ]
+    },
+    {
+      "name": "Reverse Bidding (Requirements)",
+      "item": [
+        {
+          "name": "Create Requirement",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/requirements",
+            "body": { "mode": "raw", "raw": "{\n  \"productRequired\": \"Custom handwoven jute tote bags for a cafe gift set\",\n  \"quantity\": 50,\n  \"customization\": \"Cafe logo embroidered\",\n  \"budget\": 40000,\n  \"requiredBy\": \"2027-01-01\",\n  \"deliveryLocation\": \"Pune, Maharashtra\",\n  \"additionalRequirements\": \"Eco-friendly packaging preferred\"\n}" }
+          }
+        },
+        {
+          "name": "List Requirements",
+          "request": { "method": "GET", "url": "{{baseUrl}}/requirements?status=OPEN" }
+        },
+        {
+          "name": "Get Requirement By Id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/requirements/{{requirementId}}" }
+        },
+        {
+          "name": "Submit Reverse Bid",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const json = pm.response.json();",
+            "if (json.success) { pm.collectionVariables.set('reverseBidId', json.data.id); }"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{artisanToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/requirements/{{requirementId}}/bids",
+            "body": { "mode": "raw", "raw": "{\n  \"bidPrice\": 38000,\n  \"quantity\": 50,\n  \"completionTime\": \"18 days\",\n  \"customizationCapability\": \"Full logo embroidery supported\",\n  \"proposal\": \"We can produce 50 jute tote bags with your cafe logo hand-embroidered.\"\n}" }
+          }
+        },
+        {
+          "name": "List Reverse Bids For Requirement",
+          "request": { "method": "GET", "url": "{{baseUrl}}/requirements/{{requirementId}}/bids" }
+        },
+        {
+          "name": "Select Artisan (creates Order)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const json = pm.response.json();",
+            "if (json.success) { pm.collectionVariables.set('orderId', json.data.order.id); }"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/requirements/{{requirementId}}/select-artisan",
+            "body": { "mode": "raw", "raw": "{\n  \"reverseBidId\": \"{{reverseBidId}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order (Direct Purchase)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const json = pm.response.json();",
+            "if (json.success) { pm.collectionVariables.set('orderId', json.data.id); }"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{buyerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/orders",
+            "body": { "mode": "raw", "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1,\n  \"shippingAddress\": \"12 MG Road, Bengaluru, Karnataka, 560001\"\n}" }
+          }
+        },
+        {
+          "name": "List My Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{buyerToken}}" }],
+            "url": "{{baseUrl}}/orders"
+          }
+        },
+        {
+          "name": "Get Order By Id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{buyerToken}}" }],
+            "url": "{{baseUrl}}/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{artisanToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/orders/{{orderId}}/status",
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"IN_PRODUCTION\",\n  \"courier\": \"Vistar Logistics\",\n  \"trackingId\": \"VK-TRK-0001\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{artisanToken}}" }],
+            "url": "{{baseUrl}}/notifications"
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{artisanToken}}" }],
+            "url": "{{baseUrl}}/notifications/{{notificationId}}/read"
+          }
+        }
+      ]
+    }
+  ]
+}

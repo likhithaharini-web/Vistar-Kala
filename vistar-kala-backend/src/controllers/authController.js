@@ -1,60 +1,80 @@
+const bcrypt = require('bcryptjs');
 const { User, ArtisanProfile, BuyerProfile } = require('../models');
-const { generateOtp, verifyOtp } = require('../utils/otpStore');
 const { signToken } = require('../utils/jwt');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 
-// POST /auth/send-otp
-const sendOtp = asyncHandler(async (req, res) => {
-  const { phone } = req.body;
-  if (!phone) throw new ApiError(400, 'phone is required');
-
-  const otp = generateOtp(phone);
-
-  const response = { success: true, message: 'OTP sent' };
-  if (process.env.NODE_ENV !== 'production') {
-    // Convenience for local/prototype testing only - a real SMS provider
-    // would never return the code in the API response.
-    response.devOtp = otp;
+// POST /auth/register
+const register = asyncHandler(async (req, res) => {
+  const { phone, password, name, role } = req.body;
+  if (!phone || !password) {
+    throw new ApiError(400, 'phone and password are required');
   }
-  res.json(response);
+
+  if (typeof password !== 'string' || password.length < 8) {
+    throw new ApiError(400, 'password must be at least 8 characters long');
+  }
+
+  const existing = await User.findOne({ where: { phone } });
+  if (existing) {
+    throw new ApiError(409, 'Phone number is already registered');
+  }
+
+  // Security: Do not allow public creation of admin account
+  const sanitizedRole = role === 'artisan' ? 'artisan' : 'buyer';
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  const user = await User.create({
+    phone,
+    passwordHash,
+    name: name || null,
+    role: sanitizedRole,
+    isPhoneVerified: true,
+  });
+
+  if (user.role === 'artisan') {
+    await ArtisanProfile.create({ userId: user.id });
+  } else {
+    await BuyerProfile.create({ userId: user.id });
+  }
+
+  const token = signToken({ userId: user.id, role: user.role });
+
+  res.status(201).json({
+    success: true,
+    token,
+    user: {
+      id: user.id,
+      phone: user.phone,
+      name: user.name,
+      role: user.role,
+      languagePreference: user.languagePreference,
+    },
+  });
 });
 
-// POST /auth/verify-otp
-const verifyOtpHandler = asyncHandler(async (req, res) => {
-  const { phone, code, name, role } = req.body;
-  if (!phone || !code) throw new ApiError(400, 'phone and code are required');
+// POST /auth/login
+const login = asyncHandler(async (req, res) => {
+  const { phone, password } = req.body;
+  if (!phone || !password) {
+    throw new ApiError(400, 'phone and password are required');
+  }
 
-  const result = verifyOtp(phone, code);
-  if (!result.valid) throw new ApiError(400, result.reason);
+  const user = await User.findOne({ where: { phone } });
+  if (!user || !user.passwordHash) {
+    throw new ApiError(401, 'Invalid phone number or password');
+  }
 
-  let user = await User.findOne({ where: { phone } });
-  let isNewUser = false;
-
-  if (!user) {
-    isNewUser = true;
-    user = await User.create({
-      phone,
-      name: name || null,
-      role: ['artisan', 'buyer'].includes(role) ? role : 'buyer',
-      isPhoneVerified: true,
-    });
-
-    if (user.role === 'artisan') {
-      await ArtisanProfile.create({ userId: user.id });
-    } else {
-      await BuyerProfile.create({ userId: user.id });
-    }
-  } else if (!user.isPhoneVerified) {
-    user.isPhoneVerified = true;
-    await user.save();
+  const isMatch = await bcrypt.compare(password, user.passwordHash);
+  if (!isMatch) {
+    throw new ApiError(401, 'Invalid phone number or password');
   }
 
   const token = signToken({ userId: user.id, role: user.role });
 
   res.json({
     success: true,
-    isNewUser,
     token,
     user: {
       id: user.id,
@@ -132,4 +152,4 @@ const updateProfile = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { sendOtp, verifyOtp: verifyOtpHandler, getProfile, updateProfile };
+module.exports = { register, login, getProfile, updateProfile };

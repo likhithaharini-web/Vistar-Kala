@@ -446,6 +446,114 @@ function setArtisanStep(step) {
     }
 }
 
+/**
+ * Switch Auth Tab between Sign In and Create Account
+ */
+function switchAuthTab(tab) {
+    const loginTab = document.getElementById('tab-auth-login');
+    const registerTab = document.getElementById('tab-auth-register');
+    const loginForm = document.getElementById('form-auth-login');
+    const registerForm = document.getElementById('form-auth-register');
+
+    if (tab === 'login') {
+        if (loginTab) {
+            loginTab.className = "flex-1 py-2.5 rounded-xl bg-gold-500 text-maroon-950 transition-all text-center font-extrabold shadow-md";
+        }
+        if (registerTab) {
+            registerTab.className = "flex-1 py-2.5 rounded-xl text-gold-300 hover:text-gold-200 transition-all text-center";
+        }
+        if (loginForm) loginForm.classList.remove('hidden');
+        if (registerForm) registerForm.classList.add('hidden');
+    } else {
+        if (registerTab) {
+            registerTab.className = "flex-1 py-2.5 rounded-xl bg-gold-500 text-maroon-950 transition-all text-center font-extrabold shadow-md";
+        }
+        if (loginTab) {
+            loginTab.className = "flex-1 py-2.5 rounded-xl text-gold-300 hover:text-gold-200 transition-all text-center";
+        }
+        if (registerForm) registerForm.classList.remove('hidden');
+        if (loginForm) loginForm.classList.add('hidden');
+    }
+}
+
+/**
+ * Select preset craft sample for Artisan Studio Step 1 & Preview Card
+ */
+function selectCraftSample(craftKey) {
+    const btns = ['warli', 'ikat', 'pottery', 'dhokra'];
+    btns.forEach(b => {
+        const el = document.getElementById('craft-btn-' + b);
+        if (el) {
+            if (b === craftKey) {
+                el.className = "p-3 rounded-2xl bg-gold-500 text-maroon-950 font-bold text-xs border border-gold-400 text-left transition-all";
+            } else {
+                el.className = "p-3 rounded-2xl bg-maroon-950 text-gold-300 font-semibold text-xs border border-gold-500/30 hover:border-gold-400 text-left transition-all";
+            }
+        }
+    });
+
+    const item = (typeof staticProductCatalog !== 'undefined' && staticProductCatalog[craftKey]) || null;
+    if (!item) return;
+
+    const beforeImg = document.getElementById('img-src-before');
+    const afterImg = document.getElementById('img-src-after');
+    const pcardImg = document.getElementById('pcard-img');
+    const pcardName = document.getElementById('pcard-name');
+    const pcardCraft = document.getElementById('pcard-craft');
+    const pcardPrice = document.getElementById('pcard-price');
+    const pcardDesc = document.getElementById('pcard-desc');
+    const pcardMaterial = document.getElementById('pcard-material');
+    const pcardOrigin = document.getElementById('pcard-origin');
+    const pcardSeller = document.getElementById('pcard-seller');
+    const pcardGi = document.getElementById('pcard-gi');
+    const pcardQty = document.getElementById('pcard-qty');
+
+    if (beforeImg) beforeImg.src = item.img || 'warli.png';
+    if (afterImg) afterImg.src = item.img || 'warli.png';
+    if (pcardImg) pcardImg.src = item.img || 'warli.png';
+    if (pcardName) pcardName.innerText = item.name || item.title;
+    if (pcardCraft) pcardCraft.innerText = item.craft;
+    if (pcardPrice) pcardPrice.innerText = item.price || item.msrp;
+    if (pcardDesc) pcardDesc.innerText = item.desc;
+    if (pcardMaterial) pcardMaterial.innerText = item.material || 'Traditional Materials';
+    if (pcardOrigin) pcardOrigin.innerText = item.origin || item.cluster;
+    if (pcardSeller) pcardSeller.innerText = item.seller || 'Artisan Guild';
+    if (pcardGi) pcardGi.innerText = item.giCert || 'GI Verified';
+    if (pcardQty) pcardQty.innerText = item.stock || '25 Units Ready';
+}
+
+/**
+ * Handles custom photo upload in Artisan Studio Step 1
+ */
+function handleCustomPhotoUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const photoData = e.target.result;
+        const beforeImg = document.getElementById('img-src-before');
+        const afterImg = document.getElementById('img-src-after');
+        const pcardImg = document.getElementById('pcard-img');
+        const pcardName = document.getElementById('pcard-name');
+        const customNameEl = document.getElementById('custom-photo-name');
+
+        if (beforeImg) beforeImg.src = photoData;
+        if (afterImg) afterImg.src = photoData;
+        if (pcardImg) pcardImg.src = photoData;
+
+        const cleanName = file.name.replace(/\.[^/.]+$/, "");
+        if (pcardName) pcardName.innerText = cleanName;
+        if (customNameEl) customNameEl.innerText = `✓ Loaded: ${file.name}`;
+
+        ['warli', 'ikat', 'pottery', 'dhokra'].forEach(b => {
+            const el = document.getElementById('craft-btn-' + b);
+            if (el) el.className = "p-3 rounded-2xl bg-maroon-950 text-gold-300 font-semibold text-xs border border-gold-500/30 hover:border-gold-400 text-left transition-all";
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
 // ─── MODAL CONTROLS ──────────────────────────────────────────────────────────
 
 function openPublishModal() {

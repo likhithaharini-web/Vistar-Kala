@@ -81,63 +81,159 @@ function initParticles() {
 }
 
 /**
- * Handle Auth Login / OTP Form
+ * Handle Phone + Password Login
  */
-async function handleLoginOtp() {
-    const inputPhone = document.getElementById('login-phone')?.value.trim();
-    const inputOtp = document.getElementById('login-otp')?.value.trim();
-    const btnLogin = document.getElementById('btn-login-action');
+async function handleLoginSubmit(event) {
+    event.preventDefault();
+    const phoneInput = document.getElementById('login-phone');
+    const passwordInput = document.getElementById('login-password');
+    const msgEl = document.getElementById('auth-login-msg');
+    const submitBtn = document.getElementById('btn-login-submit');
+    const spinner = document.getElementById('btn-login-spinner');
+    const label = document.getElementById('btn-login-label');
 
-    if (!inputPhone) {
-        alert('Please enter a valid mobile number or email address.');
+    const phone = phoneInput?.value.trim();
+    const password = passwordInput?.value;
+
+    if (!phone || !password) {
+        showAuthMessage(msgEl, 'Please enter both phone number and password.', true);
         return;
     }
 
-    if (!window.otpPending) {
-        // Step 1: Request OTP
-        if (btnLogin) {
-            btnLogin.disabled = true;
-            btnLogin.innerText = 'Sending OTP...';
-        }
+    if (submitBtn) submitBtn.disabled = true;
+    if (spinner) spinner.classList.remove('hidden');
+    if (label) label.innerText = 'Signing In...';
+    hideAuthMessage(msgEl);
 
-        try {
-            await requestOtpAPI(inputPhone, currentRole);
-            window.otpPending = true;
-            const otpContainer = document.getElementById('otp-input-container');
-            if (otpContainer) otpContainer.classList.remove('hidden');
-            if (btnLogin) btnLogin.innerText = 'Verify OTP & Log In →';
-            alert(`OTP sent to ${inputPhone}! (Demo default OTP: 123456)`);
-        } catch (err) {
-            alert(`Failed to request OTP: ${err.message}. Using offline mode.`);
-            setAuthState('demo-token-123', { phone: inputPhone, role: currentRole });
-            navigateTo('artisan');
-        } finally {
-            if (btnLogin) btnLogin.disabled = false;
-        }
-    } else {
-        // Step 2: Verify OTP
-        if (!inputOtp) {
-            alert('Please enter the 6-digit OTP code.');
-            return;
-        }
+    try {
+        const result = await loginAPI(phone, password);
+        showAuthMessage(msgEl, 'Login successful! Redirecting...', false);
 
-        if (btnLogin) {
-            btnLogin.disabled = true;
-            btnLogin.innerText = 'Verifying...';
-        }
+        // Update UI headers
+        const topAuth = document.getElementById('lbl-top-auth');
+        if (topAuth) topAuth.innerText = result.user.name || result.user.phone || 'My Account';
+        const badge = document.getElementById('user-badge');
+        if (badge) badge.innerText = `${result.user.name || 'User'} (${result.user.role || 'Verified'})`;
 
-        try {
-            await verifyOtpAPI(inputPhone, currentRole, inputOtp);
-            alert('Successfully authenticated!');
-            window.otpPending = false;
-            navigateTo(currentRole === 'artisan' ? 'artisan' : 'b2b');
-        } catch (err) {
-            alert(`Verification failed: ${err.message}`);
-        } finally {
-            if (btnLogin) {
-                btnLogin.disabled = false;
-                btnLogin.innerText = 'Verify OTP & Log In →';
+        // Clear password
+        if (passwordInput) passwordInput.value = '';
+
+        setTimeout(() => {
+            hideAuthMessage(msgEl);
+            if (result.user.role === 'artisan') {
+                navigateTo('artisan');
+                if (typeof setArtisanStep === 'function') setArtisanStep(1);
+            } else {
+                navigateTo('b2b');
             }
-        }
+        }, 500);
+    } catch (err) {
+        // No demo-token fallback: show honest authentication error
+        showAuthMessage(msgEl, err.message || 'Invalid phone number or password', true);
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (spinner) spinner.classList.add('hidden');
+        if (label) label.innerText = 'Login →';
     }
+}
+
+/**
+ * Handle Registration
+ */
+async function handleRegisterSubmit(event) {
+    event.preventDefault();
+    const nameInput = document.getElementById('reg-name');
+    const phoneInput = document.getElementById('reg-phone');
+    const passwordInput = document.getElementById('reg-password');
+    const confirmInput = document.getElementById('reg-confirm-password');
+    const roleInput = document.querySelector('input[name="reg-role"]:checked');
+    const msgEl = document.getElementById('auth-reg-msg');
+    const submitBtn = document.getElementById('btn-reg-submit');
+    const spinner = document.getElementById('btn-reg-spinner');
+    const label = document.getElementById('btn-reg-label');
+
+    const name = nameInput?.value.trim();
+    const phone = phoneInput?.value.trim();
+    const password = passwordInput?.value;
+    const confirmPassword = confirmInput?.value;
+    const role = roleInput?.value || 'buyer';
+
+    if (!phone || !password) {
+        showAuthMessage(msgEl, 'Phone number and password are required.', true);
+        return;
+    }
+
+    if (password.length < 8) {
+        showAuthMessage(msgEl, 'Password must be at least 8 characters long.', true);
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showAuthMessage(msgEl, 'Passwords do not match. Please verify.', true);
+        return;
+    }
+
+    if (submitBtn) submitBtn.disabled = true;
+    if (spinner) spinner.classList.remove('hidden');
+    if (label) label.innerText = 'Creating Account...';
+    hideAuthMessage(msgEl);
+
+    try {
+        const result = await registerAPI(phone, password, name, role);
+        showAuthMessage(msgEl, 'Account created successfully! Redirecting...', false);
+
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+        }
+
+        // Update UI headers
+        const topAuth = document.getElementById('lbl-top-auth');
+        if (topAuth) topAuth.innerText = result.user.name || result.user.phone || 'My Account';
+        const badge = document.getElementById('user-badge');
+        if (badge) badge.innerText = `${result.user.name || 'User'} (${result.user.role || 'Verified'})`;
+
+        // Clear form
+        document.getElementById('form-auth-register')?.reset();
+
+        setTimeout(() => {
+            hideAuthMessage(msgEl);
+            if (result.user.role === 'artisan') {
+                navigateTo('artisan');
+                if (typeof setArtisanStep === 'function') setArtisanStep(1);
+            } else {
+                navigateTo('b2b');
+            }
+        }, 600);
+    } catch (err) {
+        showAuthMessage(msgEl, err.message || 'Registration failed. Please check your information.', true);
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (spinner) spinner.classList.add('hidden');
+        if (label) label.innerText = 'Create Account →';
+    }
+}
+
+function showAuthMessage(el, message, isError = true) {
+    if (!el) return;
+    el.innerText = message;
+    el.classList.remove('hidden');
+    if (isError) {
+        el.className = 'text-xs text-center py-2 px-3 rounded-xl bg-red-950/80 border border-red-500/50 text-red-200 font-semibold shadow-sm fade-in';
+    } else {
+        el.className = 'text-xs text-center py-2 px-3 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 font-semibold shadow-sm fade-in';
+    }
+}
+
+function hideAuthMessage(el) {
+    if (!el) return;
+    el.classList.add('hidden');
+    el.innerText = '';
+}
+
+function loginAsGuest() {
+    const badge = document.getElementById('user-badge');
+    const topAuth = document.getElementById('lbl-top-auth');
+    if (topAuth) topAuth.innerText = "Guest Mode";
+    if (badge) badge.innerText = "Guest (Visitor)";
+    navigateTo('b2b');
 }

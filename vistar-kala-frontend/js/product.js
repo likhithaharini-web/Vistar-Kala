@@ -141,7 +141,28 @@ const staticProductCatalog = {
 let liveApiProducts = [];
 
 /**
- * Loads dynamic marketplace products from backend API
+ * Local storage helper for offline/demo mode without backend database
+ */
+function getLocalProducts() {
+    try {
+        return JSON.parse(localStorage.getItem('vk_local_products') || '[]');
+    } catch {
+        return [];
+    }
+}
+
+function saveLocalProduct(prod) {
+    const prods = getLocalProducts();
+    prods.unshift(prod);
+    try {
+        localStorage.setItem('vk_local_products', JSON.stringify(prods));
+    } catch (e) {
+        console.warn('LocalStorage limit reached', e);
+    }
+}
+
+/**
+ * Loads dynamic marketplace products from backend API (with offline local storage fallback)
  */
 async function loadMarketplaceProducts(category = 'all') {
     const loader = document.getElementById('b2b-api-loader');
@@ -149,23 +170,33 @@ async function loadMarketplaceProducts(category = 'all') {
     
     if (loader) loader.classList.remove('hidden');
 
+    const localProds = getLocalProducts();
+    let apiProds = [];
+
     try {
         const response = await fetchProductsAPI(category === 'all' ? null : category);
-        const products = response.data || response.products || (Array.isArray(response) ? response : []);
-        liveApiProducts = products;
-        
+        apiProds = response.data || response.products || (Array.isArray(response) ? response : []);
+    } catch (err) {
+        console.info('Backend offline - displaying local items and static catalog');
+    } finally {
+        if (loader) loader.classList.add('hidden');
+    }
+
+    // Filter local products if category selected
+    const filteredLocal = category === 'all'
+        ? localProds
+        : localProds.filter(p => (p.category || '').toLowerCase() === category.toLowerCase());
+
+    liveApiProducts = [...filteredLocal, ...apiProds];
+    
+    if (dynamicContainer) {
         dynamicContainer.innerHTML = '';
-        
-        if (products.length > 0) {
-            products.forEach(prod => {
+        if (liveApiProducts.length > 0) {
+            liveApiProducts.forEach(prod => {
                 const cardElement = createProductCardElement(prod);
                 dynamicContainer.appendChild(cardElement);
             });
         }
-    } catch (err) {
-        console.warn('Could not load products from API backend:', err.message);
-    } finally {
-        if (loader) loader.classList.add('hidden');
     }
 }
 
@@ -298,25 +329,64 @@ async function handleAddProductSubmit(event) {
     }
 
     try {
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('category', category || 'warli');
-        formData.append('price', price);
-        formData.append('stockQuantity', stock || 10);
-        formData.append('description', description);
-        formData.append('artisanCluster', artisanCluster || 'Verified GI Cluster');
+        let publishedViaBackend = false;
+        
+        // Try backend API first if server is running
+        try {
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category || 'warli');
+            formData.append('price', price);
+            formData.append('stockQuantity', stock || 10);
+            formData.append('description', description);
+            formData.append('artisanCluster', artisanCluster || 'Verified GI Cluster');
 
-        if (imageInput && imageInput.files && imageInput.files[0]) {
-            formData.append('image', imageInput.files[0]);
+            if (imageInput && imageInput.files && imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
+            }
+
+            await createProductAPI(formData);
+            publishedViaBackend = true;
+        } catch (apiErr) {
+            console.info('Backend unreachable, saving photo and craft product locally:', apiErr.message);
+
+            // Read the uploaded image file as a Data URL for offline display
+            let photoUrl = 'warli.png';
+            if (imageInput && imageInput.files && imageInput.files[0]) {
+                photoUrl = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = () => resolve('warli.png');
+                    reader.readAsDataURL(imageInput.files[0]);
+                });
+            }
+
+            const localProduct = {
+                id: 'local_' + Date.now(),
+                _id: 'local_' + Date.now(),
+                title: title,
+                name: title,
+                category: category || 'warli',
+                price: Number(price),
+                stockQuantity: Number(stock) || 10,
+                description: description,
+                artisanCluster: artisanCluster || 'Verified Local Artisan Cluster',
+                imageUrl: photoUrl,
+                images: [{ url: photoUrl }],
+                giTagNumber: 'GI #LOCAL-VERIFIED'
+            };
+
+            saveLocalProduct(localProduct);
         }
-
-        const result = await createProductAPI(formData);
         
         if (typeof confetti === 'function') {
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         }
 
-        alert(`Success! "${title}" has been created and published to the B2B Wholesale Hub.`);
+        const msg = publishedViaBackend
+            ? `🎉 Success! "${title}" has been published to the backend & Cloudinary!`
+            : `🎉 Success! "${title}" with your uploaded photo has been published locally to the B2B Hub!`;
+        alert(msg);
         closeAddProductModal();
 
         // Reset form
@@ -325,7 +395,7 @@ async function handleAddProductSubmit(event) {
         // Reload products catalog
         await loadMarketplaceProducts();
     } catch (err) {
-        alert(`Failed to add product: ${err.message}. Please check backend connection.`);
+        alert(`Failed to add product: ${err.message}`);
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;

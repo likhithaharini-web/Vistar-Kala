@@ -1,6 +1,6 @@
 # Vistar Kala — Backend
 
-Core backend for the Vistar Kala artisan marketplace: OTP auth, artisan/buyer
+Core backend for the Vistar Kala artisan marketplace: Phone + Password auth, artisan/buyer
 profiles, product management, AI image processing & auto-cataloguing, a
 dynamic fair-price engine, normal + reverse bidding with AI artisan matching,
 order management, real-time notifications, search/filtering, and an admin
@@ -19,8 +19,7 @@ logic (not mocked) — see `src/utils/fairPriceEngine.js` and
 - Node.js + Express
 - Sequelize ORM — **SQLite by default** (zero setup, file-based DB), swap to
   **PostgreSQL/Supabase** by changing two env vars
-- JWT auth (mocked OTP delivery — the code is logged to the console / echoed
-  in the API response in dev mode instead of being sent via SMS)
+- JWT auth with bcryptjs password hashing (min 8 chars)
 - Socket.IO for real-time bid/notification pushes
 - Multer for image/audio uploads (stored under `/uploads`, served statically)
 
@@ -49,16 +48,15 @@ No code changes needed — `src/config/database.js` reads these automatically.
 
 ### Demo accounts (created by `npm run seed`)
 
-| Role    | Phone           |
-|---------|-----------------|
-| admin   | +910000000001   |
-| artisan | +910000000002   |
-| buyer   | +910000000003   |
+| Role    | Phone           | Password    |
+|---------|-----------------|-------------|
+| admin   | +910000000001   | DevPass123! |
+| artisan | +910000000002   | DevPass123! |
+| buyer   | +910000000003   | DevPass123! |
 
-Login flow: `POST /api/auth/send-otp` with the phone, then
-`POST /api/auth/verify-otp` with the same phone and the OTP
-(`MOCK_OTP` in `.env`, default `123456`). In non-production mode the
-send-otp response also echoes the code as `devOtp` for convenience.
+Login flow: `POST /api/auth/login` with `phone` and `password`.
+Registration: `POST /api/auth/register` with `phone`, `password` (min. 8 characters), `name`, and `role` (`"buyer"` or `"artisan"`).
+*(Note: OTP authentication has been replaced with Phone + Password authentication in this prototype).*
 
 ## Project layout
 

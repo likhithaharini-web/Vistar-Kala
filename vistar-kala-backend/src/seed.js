@@ -1,4 +1,5 @@
 require('dotenv').config();
+const bcrypt = require('bcryptjs');
 const {
   sequelize,
   User,
@@ -11,16 +12,27 @@ const {
 async function seed() {
   await sequelize.sync();
 
-  // --- Demo users ---
-  const [admin] = await User.findOrCreate({
-    where: { phone: '+910000000001' },
-    defaults: { name: 'Admin', role: 'admin', isPhoneVerified: true },
-  });
+  const defaultPassword = 'DevPass123!';
+  const defaultPasswordHash = await bcrypt.hash(defaultPassword, 12);
 
-  const [artisanUser] = await User.findOrCreate({
-    where: { phone: '+910000000002' },
-    defaults: { name: 'Rukmini Devi', role: 'artisan', isPhoneVerified: true },
+  // --- Demo users ---
+  const [admin, adminCreated] = await User.findOrCreate({
+    where: { phone: '+910000000001' },
+    defaults: { name: 'Admin', role: 'admin', passwordHash: defaultPasswordHash, isPhoneVerified: true },
   });
+  if (!adminCreated && !admin.passwordHash) {
+    admin.passwordHash = defaultPasswordHash;
+    await admin.save();
+  }
+
+  const [artisanUser, artisanCreated] = await User.findOrCreate({
+    where: { phone: '+910000000002' },
+    defaults: { name: 'Rukmini Devi', role: 'artisan', passwordHash: defaultPasswordHash, isPhoneVerified: true },
+  });
+  if (!artisanCreated && !artisanUser.passwordHash) {
+    artisanUser.passwordHash = defaultPasswordHash;
+    await artisanUser.save();
+  }
   await ArtisanProfile.findOrCreate({
     where: { userId: artisanUser.id },
     defaults: {
@@ -32,10 +44,14 @@ async function seed() {
     },
   });
 
-  const [buyerUser] = await User.findOrCreate({
+  const [buyerUser, buyerCreated] = await User.findOrCreate({
     where: { phone: '+910000000003' },
-    defaults: { name: 'Anika Sharma', role: 'buyer', isPhoneVerified: true },
+    defaults: { name: 'Anika Sharma', role: 'buyer', passwordHash: defaultPasswordHash, isPhoneVerified: true },
   });
+  if (!buyerCreated && !buyerUser.passwordHash) {
+    buyerUser.passwordHash = defaultPasswordHash;
+    await buyerUser.save();
+  }
   await BuyerProfile.findOrCreate({
     where: { userId: buyerUser.id },
     defaults: { companyName: 'Anika Boutique', buyerType: 'retailer', location: 'Mumbai, Maharashtra' },
@@ -84,9 +100,10 @@ async function seed() {
   console.log('Seed complete.');
   // eslint-disable-next-line no-console
   console.log({
-    admin: { phone: admin.phone, note: 'Use /auth/send-otp + /auth/verify-otp with MOCK_OTP to log in.' },
-    artisan: { phone: artisanUser.id ? artisanUser.phone : null },
-    buyer: { phone: buyerUser.phone },
+    admin: { phone: admin.phone, password: defaultPassword, role: 'admin' },
+    artisan: { phone: artisanUser.phone, password: defaultPassword, role: 'artisan' },
+    buyer: { phone: buyerUser.phone, password: defaultPassword, role: 'buyer' },
+    note: 'Log in with POST /api/auth/login using phone & password.',
     sampleProductId: product.id,
   });
 

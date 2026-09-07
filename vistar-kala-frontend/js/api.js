@@ -138,17 +138,21 @@ async function createAuctionAPI(auctionData) {
 
 // ─── AUTHENTICATION APIS ─────────────────────────────────────────────────────
 
-async function requestOtpAPI(phone, role) {
-    return await apiFetch('/auth/request-otp', {
+async function loginAPI(phone, password) {
+    const data = await apiFetch('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ phone, role })
+        body: JSON.stringify({ phone, password })
     });
+    if (data.token) {
+        setAuthState(data.token, data.user);
+    }
+    return data;
 }
 
-async function verifyOtpAPI(phone, role, otp) {
-    const data = await apiFetch('/auth/verify-otp', {
+async function registerAPI(phone, password, name, role) {
+    const data = await apiFetch('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ phone, role, otp })
+        body: JSON.stringify({ phone, password, name, role })
     });
     if (data.token) {
         setAuthState(data.token, data.user);

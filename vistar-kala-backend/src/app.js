@@ -27,15 +27,15 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-// Stricter limiter on OTP endpoints to prevent SMS-bombing / brute force
-const otpLimiter = rateLimit({
+// Stricter limiter on auth endpoints to prevent brute force / credential stuffing
+const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use('/api/auth/send-otp', otpLimiter);
-app.use('/api/auth/verify-otp', otpLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // Static file serving for uploaded/processed images
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
