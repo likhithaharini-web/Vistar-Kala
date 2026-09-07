@@ -355,18 +355,35 @@
 
             <!-- Phone / OTP Input Form -->
             <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
-                <div>
-                    <label id="lbl-phone-input" class="block text-xs font-semibold text-gold-200 mb-1.5">Mobile Number / Email</label>
+                <!-- Step 1: Phone number -->
+                <div id="auth-step-phone">
+                    <label id="lbl-phone-input" class="block text-xs font-semibold text-gold-200 mb-1.5">Mobile Number</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-gold-400 text-sm">
                             <i class="fa-solid fa-phone"></i>
                         </span>
-                        <input type="text" id="auth-input-phone" placeholder="+91 98765 43210" class="w-full bg-maroon-950 border border-gold-500/30 rounded-xl py-3 pl-10 pr-4 text-sm text-gold-100 placeholder-stone-500 focus:outline-none focus:border-gold-400 transition-colors">
+                        <input type="tel" id="auth-input-phone" placeholder="+91 98765 43210" class="w-full bg-maroon-950 border border-gold-500/30 rounded-xl py-3 pl-10 pr-4 text-sm text-gold-100 placeholder-stone-500 focus:outline-none focus:border-gold-400 transition-colors">
                     </div>
                 </div>
 
-                <button type="submit" id="btn-otp-signin" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-gold-400 via-gold-500 to-amber-600 hover:from-gold-300 hover:to-amber-500 text-maroon-950 font-extrabold text-sm tracking-wide shadow-lg shadow-gold-500/25 transition-all">
-                    Sign In with OTP →
+                <!-- Step 2: OTP verification (hidden initially) -->
+                <div id="auth-step-otp" class="hidden">
+                    <label class="block text-xs font-semibold text-gold-200 mb-1.5">Enter OTP <span id="auth-otp-hint" class="text-gold-400 font-normal ml-1"></span></label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-gold-400 text-sm">
+                            <i class="fa-solid fa-key"></i>
+                        </span>
+                        <input type="text" id="auth-input-otp" placeholder="6-digit OTP" maxlength="6" class="w-full bg-maroon-950 border border-gold-500/30 rounded-xl py-3 pl-10 pr-4 text-sm text-gold-100 placeholder-stone-500 focus:outline-none focus:border-gold-400 transition-colors tracking-[0.5em] text-center font-bold">
+                    </div>
+                    <button type="button" onclick="resendOtp()" class="mt-1.5 text-[11px] text-gold-400 hover:text-gold-200 transition-colors">Resend OTP</button>
+                </div>
+
+                <!-- Auth message area -->
+                <div id="auth-msg" class="text-xs text-center py-1 rounded-lg hidden"></div>
+
+                <button type="submit" id="btn-otp-signin" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-gold-400 via-gold-500 to-amber-600 hover:from-gold-300 hover:to-amber-500 text-maroon-950 font-extrabold text-sm tracking-wide shadow-lg shadow-gold-500/25 transition-all flex items-center justify-center gap-2">
+                    <span id="btn-otp-label">Send OTP →</span>
+                    <span id="btn-otp-spinner" class="hidden w-4 h-4 border-2 border-maroon-950/40 border-t-maroon-950 rounded-full animate-spin"></span>
                 </button>
             </form>
 
@@ -1272,6 +1289,11 @@
 
         <!-- Product Cards Grid -->
         <div id="b2b-products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <!-- API-loaded products will be prepended here; static fallback cards remain below -->
+            <div id="b2b-api-loader" class="col-span-full text-center py-8 hidden">
+                <div class="w-8 h-8 border-2 border-gold-500/40 border-t-gold-400 rounded-full animate-spin mx-auto mb-3"></div>
+                <span class="text-xs text-gold-300">Loading live listings from marketplace…</span>
+            </div>
             
             <!-- PRODUCT 1: WARLI CANVAS -->
             <div data-category="warli" onclick="openProductDetailModal('warli')" class="product-card bg-maroon-900/90 border-2 border-gold-500/35 rounded-2xl overflow-hidden shadow-xl hover:border-gold-400 hover:shadow-gold-500/20 transition-all group flex flex-col justify-between cursor-pointer hover:-translate-y-1">
@@ -1866,6 +1888,11 @@
             animate();
         })();
 
+        // ─── API CONFIG ───────────────────────────────────────────────
+        const API_BASE = 'http://localhost:4000/api';
+        let authToken = localStorage.getItem('vk_token') || null;
+        let currentUser = JSON.parse(localStorage.getItem('vk_user') || 'null');
+
         // Current application state
         let currentView = 'landing';
         let currentRole = 'artisan';
@@ -1876,6 +1903,77 @@
         let currentLang = 'en';
         let synth = window.speechSynthesis;
         let currentUtterance = null;
+        let otpPending = false;  // true when waiting for OTP input
+        let _lastPublishedProductId = null; // stores id of just-published product for auction creation
+
+        // ─── DYNAMIC TRANSLATION LAYER ────────────────────────────────────────
+        // Client-side in-memory cache to avoid duplicate API calls within a session.
+        // Key: "<srcLang>|<tgtLang>|<text>", Value: translated string.
+        // The i18n dictionary handles all static UI; this layer ONLY translates
+        // user-generated/database content (product names, descriptions, chat msgs).
+        const _txCache = new Map();
+
+        /**
+         * Translates user-generated text via the backend /api/translate endpoint.
+         * - Returns the original text unchanged on any error (graceful degradation).
+         * - Skips the API call if text is already in the target language.
+         * - Uses a session-local in-memory cache to deduplicate calls.
+         *
+         * @param {string}      text        The text to translate.
+         * @param {string}      targetLang  BCP-47 target language code (en | hi | te).
+         * @param {string|null} sourceLang  BCP-47 source lang, or null for auto-detect.
+         * @returns {Promise<string>}       The translated text, or original on failure.
+         */
+        async function translateDynamic(text, targetLang, sourceLang = null) {
+            if (!text || !text.trim()) return text;
+
+            // If source equals target, no translation needed
+            if (sourceLang && sourceLang === targetLang) return text;
+
+            // English text is already the baseline; skip API for en→en
+            if (targetLang === 'en' && sourceLang === 'en') return text;
+
+            const cacheKey = `${sourceLang || 'auto'}|${targetLang}|${text.trim()}`;
+            if (_txCache.has(cacheKey)) return _txCache.get(cacheKey);
+
+            try {
+                const res = await fetch(API_BASE + '/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text.trim(),
+                        targetLanguage: targetLang,
+                        ...(sourceLang ? { sourceLanguage: sourceLang } : {}),
+                    }),
+                });
+
+                if (!res.ok) {
+                    // Service unavailable (503) or upstream error (502) — show original
+                    return text;
+                }
+
+                const data = await res.json();
+                const translated = data.translatedText || text;
+                _txCache.set(cacheKey, translated);
+                return translated;
+            } catch (_err) {
+                // Network failure — return original so the UI never breaks
+                return text;
+            }
+        }
+
+        /**
+         * Translates multiple text strings in parallel and returns the array of results.
+         * Falls back to the original strings on failure.
+         *
+         * @param {string[]} texts       Array of texts to translate.
+         * @param {string}   targetLang  Target language code.
+         * @param {string}   sourceLang  Source language code (or null for auto-detect).
+         * @returns {Promise<string[]>}
+         */
+        async function translateBatch(texts, targetLang, sourceLang = null) {
+            return Promise.all(texts.map(t => translateDynamic(t, targetLang, sourceLang)));
+        }
 
         // Product Catalog Data Store
         const productCatalog = {
@@ -2566,7 +2664,12 @@
                 void container.offsetWidth;
                 container.classList.add('fade-in');
             }
+
+            // Re-translate any live API product cards already in the DOM.
+            // This is async/non-blocking so the static UI update above is instant.
+            retranslateProductCards().catch(() => {/* silent — falls back to original text */});
         }
+
 
         function safeSetText(id, text) {
             const el = document.getElementById(id);
@@ -2631,6 +2734,280 @@
             });
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Load live products when B2B view is shown
+            if (viewId === 'b2b') {
+                loadB2BProducts();
+            }
+        }
+
+        // ─── B2B PRODUCT LOADING FROM API ─────────────────────────────
+        async function loadB2BProducts() {
+            const loader = document.getElementById('b2b-api-loader');
+            // Remove any previously API-loaded cards
+            document.querySelectorAll('.product-card-api').forEach(el => el.remove());
+
+            if (isOffline) return; // Don't try network in offline mode
+
+            try {
+                if (loader) loader.classList.remove('hidden');
+                const res = await fetch(API_BASE + '/products?limit=6');
+                if (!res.ok) throw new Error('API error');
+                const data = await res.json();
+                if (loader) loader.classList.add('hidden');
+
+                const products = data.products || data.data || [];
+                if (!products.length) return; // No API products yet, keep static fallback
+
+                const grid = document.getElementById('b2b-products-grid');
+                const staticCards = grid ? grid.querySelectorAll('.product-card:not(.product-card-api)') : [];
+
+                // Translate product names + descriptions when a non-English language is selected.
+                // Source language = null so Google auto-detects (products may be in any language).
+                // Original product data is NEVER mutated — translated text is display-only.
+                const needsTranslation = currentLang !== 'en';
+                const displayProducts = needsTranslation
+                    ? await Promise.all(products.map(async (p) => {
+                        const [tName, tDesc] = await translateBatch(
+                            [p.name || '', p.description || ''],
+                            currentLang,
+                            null
+                        );
+                        return { ...p, _displayName: tName, _displayDesc: tDesc };
+                    }))
+                    : products.map(p => ({ ...p, _displayName: p.name, _displayDesc: p.description }));
+
+                displayProducts.forEach(function(p) {
+                    const priceNum = p.b2bPrice || p.msrp || 0;
+                    const priceStr = priceNum ? ('&#8377;' + Number(priceNum).toLocaleString('en-IN')) : '&#8377;&mdash;';
+                    const stock = p.stockQuantity || p.stock || '&mdash;';
+                    const displayName = p._displayName || p.name;
+                    const displayDesc = p._displayDesc || p.description || '';
+
+                    const card = document.createElement('div');
+                    card.className = 'product-card-api product-card bg-maroon-900/90 border-2 border-gold-500/35 rounded-2xl overflow-hidden shadow-xl hover:border-gold-400 hover:shadow-gold-500/20 transition-all group flex flex-col justify-between cursor-pointer hover:-translate-y-1';
+                    card.setAttribute('data-category', (p.craftCategory || 'general').toLowerCase());
+                    // Store originals so re-translation reads from source, not accumulated text
+                    card.setAttribute('data-original-name', p.name || '');
+                    card.setAttribute('data-original-desc', p.description || '');
+                    card.innerHTML =
+                        '<div>' +
+                        '<div class="h-52 bg-gradient-to-tr from-maroon-900 via-stone-900 to-maroon-950 flex items-center justify-center relative overflow-hidden">' +
+                        (p.imageUrl ? '<img src="' + p.imageUrl + '" alt="' + displayName + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-105">' : '<i class="fa-solid fa-palette text-6xl text-gold-400/60"></i>') +
+                        '<span class="absolute top-3 left-3 bg-maroon-950/90 text-gold-300 text-[10px] font-black px-2.5 py-1 rounded-full border border-gold-500/40">&#10024; Live Listing</span>' +
+                        '<span class="absolute top-3 right-3 bg-gold-500 text-maroon-950 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md">&#9733; Verified</span>' +
+                        '</div>' +
+                        '<div class="p-5">' +
+                        '<span class="text-[10px] uppercase tracking-wider font-bold text-gold-400">' + (p.craftCategory || 'Heritage Craft') + '</span>' +
+                        '<h3 class="product-api-name text-lg font-bold text-gold-100 font-serif-heritage mt-1 group-hover:text-gold-300 transition-colors">' + displayName + '</h3>' +
+                        '<p class="product-api-desc text-xs text-stone-200 mt-1 line-clamp-2">' + displayDesc + '</p>' +
+                        '<div class="mt-4 pt-3 border-t border-gold-500/20 flex justify-between items-center text-xs">' +
+                        '<div><span class="text-stone-400 block text-[10px]">Wholesale Rate:</span>' +
+                        '<span class="font-extrabold text-gold-300 text-lg">' + priceStr + ' <span class="text-[10px] font-normal text-stone-400">/ pc</span></span></div>' +
+                        '<div class="text-right"><span class="text-stone-400 block text-[10px]">Stock:</span>' +
+                        '<span class="font-bold text-amber-300 bg-maroon-950 px-2 py-0.5 rounded border border-gold-500/30">' + stock + ' Units</span></div>' +
+                        '</div></div></div>' +
+                        '<div class="p-5 pt-0"><button class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">' +
+                        '<i class="fa-solid fa-id-card"></i> &#128717;&#65039; Live Details &rarr;</button></div>';
+
+                    // Insert API cards before the static fallback ones
+                    if (grid && staticCards.length) {
+                        grid.insertBefore(card, staticCards[0]);
+                    } else if (grid) {
+                        grid.appendChild(card);
+                    }
+                });
+            } catch (err) {
+                if (loader) loader.classList.add('hidden');
+                // Silently fall back to static product cards
+            }
+        }
+
+        /**
+         * Re-translates already-rendered API product cards when the user switches language.
+         * Reads original text from data-attributes (never accumulated translation text),
+         * so switching en→hi→en always restores the original DB value perfectly.
+         */
+        async function retranslateProductCards() {
+            const cards = document.querySelectorAll('.product-card-api');
+            if (!cards.length) return;
+            for (const card of cards) {
+                const origName = card.getAttribute('data-original-name') || '';
+                const origDesc = card.getAttribute('data-original-desc') || '';
+                const nameEl = card.querySelector('.product-api-name');
+                const descEl = card.querySelector('.product-api-desc');
+                if (!nameEl && !descEl) continue;
+
+                if (currentLang === 'en') {
+                    if (nameEl) nameEl.textContent = origName;
+                    if (descEl) descEl.textContent = origDesc;
+                    continue;
+                }
+
+                const [tName, tDesc] = await translateBatch([origName, origDesc], currentLang, null);
+                if (nameEl) nameEl.textContent = tName;
+                if (descEl) descEl.textContent = tDesc;
+            }
+        }
+
+        // ─── SESSION RESTORE ON PAGE LOAD ────────────────────────────
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (authToken && currentUser) {
+                try {
+                    const res = await fetch(`${API_BASE}/user/profile`, {
+                        headers: { Authorization: `Bearer ${authToken}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        currentUser = data.user;
+                        localStorage.setItem('vk_user', JSON.stringify(currentUser));
+                        _applyLoggedInUI(currentUser);
+                    } else {
+                        _clearSession();
+                    }
+                } catch (e) {
+                    // Backend unreachable – still show cached user name
+                    _applyLoggedInUI(currentUser);
+                }
+            }
+        });
+
+        function _applyLoggedInUI(user) {
+            const badge = document.getElementById('user-badge');
+            const topAuth = document.getElementById('lbl-top-auth');
+            const topBtn = document.getElementById('btn-top-auth');
+            const displayName = user.name || user.phone;
+            if (badge) badge.innerText = `${displayName} (${user.role === 'artisan' ? 'Verified' : 'Buyer'})`;
+            if (topAuth) topAuth.innerText = displayName;
+            if (topBtn) {
+                topBtn.onclick = logoutUser;
+                topBtn.title = 'Click to log out';
+            }
+        }
+
+        function _clearSession() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('vk_token');
+            localStorage.removeItem('vk_user');
+            const topAuth = document.getElementById('lbl-top-auth');
+            const topBtn = document.getElementById('btn-top-auth');
+            if (topAuth) topAuth.innerText = 'Sign In';
+            if (topBtn) topBtn.onclick = () => navigateTo('login');
+        }
+
+        function logoutUser() {
+            _clearSession();
+            navigateTo('landing');
+            showAuthMsg('You have been logged out.', 'info');
+        }
+
+        // ─── AUTH HELPERS ─────────────────────────────────────────────
+        function showAuthMsg(msg, type = 'info') {
+            const el = document.getElementById('auth-msg');
+            if (!el) return;
+            el.classList.remove('hidden', 'text-red-400', 'text-emerald-400', 'text-gold-300');
+            el.classList.add(type === 'error' ? 'text-red-400' : type === 'success' ? 'text-emerald-400' : 'text-gold-300');
+            el.innerText = msg;
+            el.classList.remove('hidden');
+        }
+
+        function setAuthLoading(loading) {
+            const spinner = document.getElementById('btn-otp-spinner');
+            const label = document.getElementById('btn-otp-label');
+            const btn = document.getElementById('btn-otp-signin');
+            if (spinner) spinner.classList.toggle('hidden', !loading);
+            if (btn) btn.disabled = loading;
+        }
+
+        function resendOtp() {
+            otpPending = false;
+            const phoneStep = document.getElementById('auth-step-phone');
+            const otpStep = document.getElementById('auth-step-otp');
+            const label = document.getElementById('btn-otp-label');
+            if (phoneStep) phoneStep.classList.remove('hidden');
+            if (otpStep) otpStep.classList.add('hidden');
+            if (label) label.innerText = 'Send OTP →';
+            showAuthMsg('Enter your number again to resend OTP.', 'info');
+        }
+
+        // ─── 2-STEP OTP AUTH ──────────────────────────────────────────
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+
+            if (!otpPending) {
+                // Step 1: Send OTP
+                const phone = document.getElementById('auth-input-phone').value.trim();
+                if (!phone) { showAuthMsg('Please enter your mobile number.', 'error'); return; }
+
+                setAuthLoading(true);
+                try {
+                    const res = await fetch(`${API_BASE}/auth/send-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) { showAuthMsg(data.message || 'Failed to send OTP.', 'error'); return; }
+
+                    // Switch to OTP step
+                    otpPending = true;
+                    document.getElementById('auth-step-phone').classList.add('hidden');
+                    document.getElementById('auth-step-otp').classList.remove('hidden');
+                    document.getElementById('btn-otp-label').innerText = 'Verify OTP →';
+
+                    // In dev mode the OTP is returned in response for convenience
+                    if (data.devOtp) {
+                        document.getElementById('auth-input-otp').value = data.devOtp;
+                        document.getElementById('auth-otp-hint').innerText = `(Dev: ${data.devOtp})`;
+                        showAuthMsg('OTP sent! Dev OTP auto-filled for testing.', 'success');
+                    } else {
+                        showAuthMsg('OTP sent to your mobile number.', 'success');
+                    }
+                } catch (err) {
+                    showAuthMsg('Backend unreachable. Using guest mode instead.', 'error');
+                } finally {
+                    setAuthLoading(false);
+                }
+            } else {
+                // Step 2: Verify OTP
+                const phone = document.getElementById('auth-input-phone').value.trim();
+                const code = document.getElementById('auth-input-otp').value.trim();
+                if (!code) { showAuthMsg('Please enter the OTP.', 'error'); return; }
+
+                const role = currentRole === 'b2b' ? 'buyer' : 'artisan';
+                setAuthLoading(true);
+                try {
+                    const res = await fetch(`${API_BASE}/auth/verify-otp`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone, code, role })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) { showAuthMsg(data.message || 'Invalid OTP.', 'error'); return; }
+
+                    // Persist session
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('vk_token', authToken);
+                    localStorage.setItem('vk_user', JSON.stringify(currentUser));
+
+                    // Reset OTP form
+                    otpPending = false;
+                    document.getElementById('auth-step-phone').classList.remove('hidden');
+                    document.getElementById('auth-step-otp').classList.add('hidden');
+                    document.getElementById('auth-input-phone').value = '';
+                    document.getElementById('auth-input-otp').value = '';
+                    document.getElementById('btn-otp-label').innerText = 'Send OTP →';
+
+                    _applyLoggedInUI(currentUser);
+                    completeLogin(false);
+                } catch (err) {
+                    showAuthMsg('Backend unreachable. Try guest mode.', 'error');
+                } finally {
+                    setAuthLoading(false);
+                }
+            }
         }
 
         function startPortalFlow(role) {
@@ -2651,6 +3028,16 @@
                 btnB2B.className = "flex-1 py-2.5 rounded-xl bg-gold-500 text-maroon-950 font-extrabold transition-all text-center";
                 btnArtisan.className = "flex-1 py-2.5 rounded-xl text-gold-300 hover:text-gold-200 transition-all text-center";
             }
+            // Reset form to phone step when role changes
+            otpPending = false;
+            const phoneStep = document.getElementById('auth-step-phone');
+            const otpStep = document.getElementById('auth-step-otp');
+            const lbl = document.getElementById('btn-otp-label');
+            const msg = document.getElementById('auth-msg');
+            if (phoneStep) phoneStep.classList.remove('hidden');
+            if (otpStep) otpStep.classList.add('hidden');
+            if (lbl) lbl.innerText = 'Send OTP →';
+            if (msg) msg.classList.add('hidden');
         }
 
         function handleAuthSubmit(e) {
@@ -2668,22 +3055,25 @@
 
             if (isGuest) {
                 if (currentRole === 'artisan') {
-                    badge.innerText = "Guest Artisan (Warli Cluster)";
-                    topAuth.innerText = "Guest Artisan";
+                    if (badge) badge.innerText = "Guest Artisan (Warli Cluster)";
+                    if (topAuth) topAuth.innerText = "Guest Artisan";
                     navigateTo('artisan');
                     setArtisanStep(1);
                 } else {
-                    topAuth.innerText = "Guest Buyer";
+                    if (topAuth) topAuth.innerText = "Guest Buyer";
                     navigateTo('b2b');
                 }
             } else {
-                if (currentRole === 'artisan') {
-                    badge.innerText = "Devu Patil (Verified Master)";
-                    topAuth.innerText = "Devu (Artisan)";
+                // Logged in via API
+                const displayName = currentUser ? (currentUser.name || currentUser.phone) : 'Artisan';
+                const roleLabel = (currentUser && currentUser.role === 'buyer') ? 'Buyer' : 'Artisan';
+                if (badge) badge.innerText = `${displayName} (${roleLabel})`;
+                if (topAuth) topAuth.innerText = displayName;
+
+                if (currentRole === 'artisan' || (currentUser && currentUser.role === 'artisan')) {
                     navigateTo('artisan');
                     setArtisanStep(1);
                 } else {
-                    topAuth.innerText = "Wholesale Buyer";
                     navigateTo('b2b');
                 }
             }
@@ -3039,16 +3429,28 @@
             }, 2500);
         }
 
-        function sendArtisanChatMessage() {
+        async function sendArtisanChatMessage() {
             const input = document.getElementById('artisan-chat-input');
             const text = input.value.trim();
             if (!text) return;
 
+            input.value = '';
             const stream = document.getElementById('artisan-chat-stream');
+
+            // Translate the artisan's message to English for the buyer
+            // (auto-detect source language since artisan may type in hi/te/mr/en)
+            const translationTarget = 'en';
+            const translated = await translateDynamic(text, translationTarget, null);
+            const isTranslated = translated && translated !== text;
+            const translationNote = isTranslated
+                ? `🔄 AI Translated: "${translated}"`
+                : '🔄 AI Translated to English in real time';
+
+            const safeText = text.replace(/'/g, "\\'");
             const msgHtml = `
                 <div class="flex flex-col items-end ml-auto max-w-[85%] fade-in">
                     <div class="flex items-center gap-2">
-                        <button onclick="speakChatMessage('${text}')" class="w-7 h-7 rounded-full bg-maroon-900 hover:bg-gold-500 hover:text-maroon-950 text-gold-300 flex items-center justify-center text-xs border border-gold-500/30 transition-all shadow-sm" title="Listen message">
+                        <button onclick="speakChatMessage('${safeText}')" class="w-7 h-7 rounded-full bg-maroon-900 hover:bg-gold-500 hover:text-maroon-950 text-gold-300 flex items-center justify-center text-xs border border-gold-500/30 transition-all shadow-sm" title="Listen message">
                             <i class="fa-solid fa-volume-high"></i>
                         </button>
                         <div class="bg-gold-500 text-maroon-950 p-3 rounded-2xl rounded-tr-none font-bold shadow-md">
@@ -3056,12 +3458,11 @@
                         </div>
                     </div>
                     <span class="text-[10px] text-gold-300/90 mt-1 italic">
-                        🔄 AI Translated to English in real time
+                        ${translationNote}
                     </span>
                 </div>
             `;
             stream.insertAdjacentHTML('beforeend', msgHtml);
-            input.value = '';
             stream.scrollTop = stream.scrollHeight;
         }
 
@@ -3178,13 +3579,14 @@
             if (!text) return;
 
             const stream = document.getElementById('modal-chat-stream');
+            const safeBuyerText = text.replace(/'/g, "\\'");
             const buyerHtml = `
                 <div class="flex flex-col items-start max-w-[85%] fade-in">
                     <div class="flex items-center gap-2">
                         <div class="bg-stone-800 text-stone-100 p-3 rounded-2xl rounded-tl-none border border-stone-700">
                             ${text}
                         </div>
-                        <button onclick="speakChatMessage('${text}')" class="w-7 h-7 rounded-full bg-maroon-900 hover:bg-gold-500 hover:text-maroon-950 text-gold-300 flex items-center justify-center text-xs border border-gold-500/30 transition-all shadow-sm">
+                        <button onclick="speakChatMessage('${safeBuyerText}')" class="w-7 h-7 rounded-full bg-maroon-900 hover:bg-gold-500 hover:text-maroon-950 text-gold-300 flex items-center justify-center text-xs border border-gold-500/30 transition-all shadow-sm">
                             <i class="fa-solid fa-volume-high"></i>
                         </button>
                     </div>
@@ -3194,12 +3596,23 @@
             stream.insertAdjacentHTML('beforeend', buyerHtml);
             input.value = '';
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 const artisanReplyText = "जी हुज़ूर! हमने आपका अनुरोध नोट कर लिया है। हम 100% शुद्ध प्राकृतिक सामग्री और GI प्रमाण पत्र के साथ आपका ऑर्डर पूरा करेंगे।";
+                
+                // Translate the artisan's reply back to English (buyer's language)
+                const translationTarget = 'en';
+                const translated = await translateDynamic(artisanReplyText, translationTarget, null);
+                const isTranslated = translated && translated !== artisanReplyText;
+                const translationNote = isTranslated
+                    ? `🔄 AI Translated for Buyer: "${translated}"`
+                    : '🔄 AI Translated for Buyer';
+
+                const safeTranslated = isTranslated ? translated.replace(/'/g, "\\'") : artisanReplyText.replace(/'/g, "\\'");
+
                 const artisanHtml = `
                     <div class="flex flex-col items-end ml-auto max-w-[85%] fade-in">
                         <div class="flex items-center gap-2">
-                            <button onclick="speakChatMessage('Thank you sir! We have noted your request. We will fulfill your custom order with 100% pure organic materials and digital GI certification.')" class="w-7 h-7 rounded-full bg-maroon-900 hover:bg-gold-500 hover:text-maroon-950 text-gold-300 flex items-center justify-center text-xs border border-gold-500/30 transition-all shadow-sm">
+                            <button onclick="speakChatMessage('${safeTranslated}')" class="w-7 h-7 rounded-full bg-maroon-900 hover:bg-gold-500 hover:text-maroon-950 text-gold-300 flex items-center justify-center text-xs border border-gold-500/30 transition-all shadow-sm">
                                 <i class="fa-solid fa-volume-high"></i>
                             </button>
                             <div class="bg-gold-500 text-maroon-950 p-3 rounded-2xl rounded-tr-none font-bold shadow-md">
@@ -3207,7 +3620,7 @@
                             </div>
                         </div>
                         <span class="text-[10px] text-gold-300/90 mt-1 italic">
-                            🔄 AI Translated for Buyer: "Thank you sir! We have noted your request. We will fulfill your custom order with 100% pure organic materials and digital GI certification."
+                            ${translationNote}
                         </span>
                     </div>
                 `;
@@ -3316,17 +3729,100 @@
             }
         }
 
-        function confirmPublishMode(mode) {
+        async function confirmPublishMode(mode) {
             closePublishModal();
-            if (typeof confetti === 'function') {
-                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+
+            // Guest users get a preview flow
+            if (!authToken) {
+                if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+                if (mode === 'normal') {
+                    alert('Success! Craft published! (Sign in to save it to the live marketplace.)');
+                } else {
+                    alert('Heritage Auction launched! (Sign in to create a live bidding session.)');
+                }
+                navigateTo('b2b');
+                return;
             }
-            if (mode === 'normal') {
-                alert("🎉 Success! Your craft has been published as a NORMAL FIXED PRICE LISTING (MSRP ₹3,890 / B2B ₹2,850) on Vistar Kala Marketplace & 5 Omni-Channel Networks.");
-            } else {
-                alert("🔨 Success! Your craft has been launched as a LIVE HERITAGE BIDDING AUCTION!\n\n• Starting Bid: ₹2,500\n• Reserve Price: ₹3,500\n• Live Bidding Window: 7 Days\n\nYour listing is now open for live competitive bids from international art collectors and museum curators!");
+
+            // Collect current catalog data from the Artisan Studio forms
+            var titleEl = document.getElementById('cat-title');
+            var mediumEl = document.getElementById('cat-medium');
+            var specsEl = document.getElementById('cat-specs');
+            var pcardCraftEl = document.getElementById('pcard-craft');
+            var msrpEl = document.getElementById('out-msrp');
+            var b2bEl = document.getElementById('out-b2b');
+            var title = (titleEl && titleEl.value) || 'Handcrafted Heritage Piece';
+            var medium = (mediumEl && mediumEl.value) || '';
+            var specs = (specsEl && specsEl.value) || '';
+            var craftCategory = (pcardCraftEl && pcardCraftEl.innerText) || 'Heritage Craft';
+            var msrpRaw = msrpEl ? msrpEl.innerText.replace(/[^0-9]/g, '') : '3890';
+            var b2bRaw = b2bEl ? b2bEl.innerText.replace(/[^0-9]/g, '') : '2850';
+
+            // Show loading state
+            var pubBtn = document.getElementById('btn-publish-live');
+            if (pubBtn) { pubBtn.disabled = true; pubBtn.innerText = 'Publishing...'; }
+
+            try {
+                // Step 1: Create the product
+                var productRes = await fetch(API_BASE + '/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify({
+                        name: title,
+                        description: (medium + '. ' + specs).trim(),
+                        craftCategory: craftCategory,
+                        msrp: Number(msrpRaw) || 3890,
+                        b2bPrice: Number(b2bRaw) || 2850,
+                        stockQuantity: 45,
+                        isPublished: true
+                    })
+                });
+
+                var productData = await productRes.json();
+                if (!productRes.ok) throw new Error(productData.message || 'Failed to publish product');
+
+                var newProduct = productData.product || productData.data || productData;
+                _lastPublishedProductId = newProduct.id;
+
+                if (mode === 'bidding' && _lastPublishedProductId) {
+                    // Step 2: Create an auction for it
+                    var startBidEl = document.getElementById('pub-bid-start');
+                    var reserveEl = document.getElementById('pub-bid-reserve');
+                    var startBidRaw = startBidEl ? startBidEl.innerText.replace(/[^0-9]/g, '') : '2500';
+                    var reserveRaw = reserveEl ? reserveEl.innerText.replace(/[^0-9]/g, '') : '3500';
+                    var endTime = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+                    await fetch(API_BASE + '/auctions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + authToken
+                        },
+                        body: JSON.stringify({
+                            productId: _lastPublishedProductId,
+                            startPrice: Number(startBidRaw) || 2500,
+                            reservePrice: Number(reserveRaw) || 3500,
+                            startTime: new Date().toISOString(),
+                            endTime: endTime
+                        })
+                    }).catch(function(e) { console.warn('Auction creation:', e.message); });
+                }
+
+                if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+                if (mode === 'normal') {
+                    alert('Success! "' + title + '" is now live on the B2B marketplace.');
+                } else {
+                    alert('Heritage Auction launched! "' + title + '" is open for live bidding for 7 days.');
+                }
+                navigateTo('b2b');
+            } catch (err) {
+                alert('Publish failed: ' + err.message + '. Please check your connection and try again.');
+            } finally {
+                if (pubBtn) { pubBtn.disabled = false; pubBtn.innerText = 'Publish to B2B Marketplace'; }
             }
-            navigateTo('b2b');
         }
     </script>
 
