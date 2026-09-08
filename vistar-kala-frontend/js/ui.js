@@ -417,13 +417,31 @@ function switchRole(role) {
 }
 
 /**
+ * Start Portal Flow from Home Screen Dual Portals
+ */
+function startPortalFlow(role) {
+    currentRole = role;
+    if (role === 'artisan') {
+        navigateTo('artisan');
+        setArtisanStep(1);
+    } else {
+        navigateTo('b2b');
+    }
+}
+
+function selectLoginRole(role) {
+    switchRole(role);
+}
+
+/**
  * Artisan Suite Step Navigation
  */
 function setArtisanStep(step) {
     currentArtisanStep = step;
 
-    for (let i = 1; i <= 6; i++) {
+    for (let i = 1; i <= 5; i++) {
         const stepEl = document.getElementById(`artisan-step-${i}`);
+        const tabEl = document.getElementById(`step-tab-${i}`);
         const pillEl = document.getElementById(`step-pill-${i}`);
 
         if (stepEl) {
@@ -431,6 +449,16 @@ function setArtisanStep(step) {
                 stepEl.classList.remove('hidden');
             } else {
                 stepEl.classList.add('hidden');
+            }
+        }
+
+        if (tabEl) {
+            if (i === step) {
+                tabEl.className = 'step-tab shrink-0 min-w-[85px] sm:min-w-0 snap-start py-2.5 px-2 rounded-xl bg-gold-500 text-maroon-950 font-extrabold text-[10px] sm:text-xs transition-all shadow-md shadow-gold-500/20';
+            } else if (i < step) {
+                tabEl.className = 'step-tab shrink-0 min-w-[85px] sm:min-w-0 snap-start py-2.5 px-2 rounded-xl bg-maroon-900 text-gold-300 font-bold text-[10px] sm:text-xs border border-gold-500/40 hover:bg-maroon-800 transition-all';
+            } else {
+                tabEl.className = 'step-tab shrink-0 min-w-[85px] sm:min-w-0 snap-start py-2.5 px-2 rounded-xl bg-maroon-950 text-gold-400/60 font-semibold text-[10px] sm:text-xs hover:bg-maroon-800 transition-all';
             }
         }
 
@@ -443,6 +471,11 @@ function setArtisanStep(step) {
                 pillEl.className = 'w-8 h-8 rounded-full bg-maroon-950 text-stone-400 font-medium flex items-center justify-center text-xs border border-gold-500/20';
             }
         }
+    }
+
+    const activeTab = document.getElementById(`step-tab-${step}`);
+    if (activeTab && activeTab.scrollIntoView) {
+        activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
 }
 
@@ -607,6 +640,16 @@ async function confirmPublishMode(mode) {
 }
 
 function openAddProductModal() {
+    // Guard: only authenticated artisan users can publish products
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.role !== 'artisan') {
+        alert('⚠️ Only Artisan accounts can publish products.\nPlease sign in with an Artisan account to access this feature.');
+        return;
+    }
+    if (typeof authToken !== 'undefined' && !authToken) {
+        alert('Please sign in as an Artisan to publish products.');
+        if (typeof navigateTo === 'function') navigateTo('login');
+        return;
+    }
     const modal = document.getElementById('modal-add-product');
     if (modal) modal.classList.remove('hidden');
 }
@@ -620,7 +663,7 @@ function closeAddProductModal() {
  * Detailed Product Modal Inspector
  */
 async function openProductDetailModal(keyOrId) {
-    const modal = document.getElementById('modal-product-detail');
+    const modal = document.getElementById('product-detail-modal') || document.getElementById('modal-product-detail');
     if (!modal) return;
 
     let p = staticProductCatalog[keyOrId];
@@ -710,9 +753,259 @@ async function openProductDetailModal(keyOrId) {
     setTxt('modal-out-b2b', p.b2bRate || p.price);
 
     modal.classList.remove('hidden');
+    document.body.classList.add('modal-open');
 }
 
-function closeProductModal() {
-    const modal = document.getElementById('modal-product-detail');
+function closeProductDetailModal() {
+    stopVoiceNarration();
+    const modal = document.getElementById('product-detail-modal') || document.getElementById('modal-product-detail');
     if (modal) modal.classList.add('hidden');
+    document.body.classList.remove('modal-open');
+}
+const closeProductModal = closeProductDetailModal;
+
+/**
+ * Story TTS Voice Narration
+ */
+let narrationUtterance = null;
+function playEnglishVoiceNarration() {
+    stopVoiceNarration();
+    const storyText = document.getElementById('modal-story-body')?.innerText || 
+                      document.getElementById('pcard-desc')?.innerText || 
+                      "Vistar Kala connects master artisans directly with global wholesale buyers.";
+
+    const btn = document.getElementById('btn-modal-listen-story');
+
+    if ('speechSynthesis' in window) {
+        narrationUtterance = new SpeechSynthesisUtterance(storyText);
+        narrationUtterance.rate = 0.95;
+        narrationUtterance.pitch = 1.05;
+        narrationUtterance.lang = 'en-US';
+
+        narrationUtterance.onstart = () => {
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-volume-high animate-pulse text-amber-300"></i> Speaking Narration...';
+        };
+
+        narrationUtterance.onend = () => {
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Listen to Voice Narration';
+        };
+
+        narrationUtterance.onerror = () => {
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Listen to Voice Narration';
+        };
+
+        window.speechSynthesis.speak(narrationUtterance);
+    } else {
+        alert("Audio Narration: " + storyText);
+    }
+}
+
+function stopVoiceNarration() {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+    const btn = document.getElementById('btn-modal-listen-story');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Listen to Voice Narration';
+}
+
+/**
+ * Offline Mode Toggle
+ */
+let isOffline = false;
+function toggleOfflineMode() {
+    isOffline = !isOffline;
+    const btn = document.getElementById('btn-offline-mode');
+    const dot = document.getElementById('offline-dot');
+    const txt = document.getElementById('offline-txt');
+
+    if (isOffline) {
+        if (btn) btn.className = "flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full bg-amber-950/90 border border-amber-500/60 text-amber-300 shadow-md transition-all hover:scale-105";
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-400";
+        if (txt) txt.innerText = "Offline Mode (Local Queue)";
+        alert("📡 Offline Mode Activated!\n\nYour voice recordings, catalog drafts, and photo enhancements will be saved securely on your device and will auto-sync when network returns.");
+    } else {
+        if (btn) btn.className = "flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/50 text-emerald-400 shadow-md transition-all hover:scale-105";
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+        if (txt) txt.innerText = "Online Sync";
+        alert("🟢 Online Sync Restored!\n\nAll local drafts and product listings are synchronized with the Vistar Kala cloud servers.");
+    }
+}
+
+/**
+ * AI Image Enhancer Presets (Step 1)
+ */
+function applyImageEnhancePreset(preset) {
+    const presets = ['lighting', 'bg', 'upscale'];
+    const afterImg = document.getElementById('img-src-after');
+    presets.forEach(p => {
+        const btnId = 'preset-' + (p === 'lighting' ? 'studio-lighting' : p === 'bg' ? 'bg-clean' : '4k-upscale');
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            if (p === preset) {
+                btn.className = "text-xs px-3 py-1.5 rounded-lg bg-gold-500 text-maroon-950 font-bold transition-all shadow-md";
+            } else {
+                btn.className = "text-xs px-3 py-1.5 rounded-lg bg-maroon-900 text-gold-200 border border-gold-500/30 transition-all";
+            }
+        }
+    });
+
+    if (afterImg) {
+        if (preset === 'lighting') {
+            afterImg.style.filter = 'brightness(1.12) contrast(1.1) saturate(1.1)';
+        } else if (preset === 'bg') {
+            afterImg.style.filter = 'brightness(1.05) contrast(1.2) drop-shadow(0 10px 20px rgba(0,0,0,0.5))';
+        } else if (preset === 'upscale') {
+            afterImg.style.filter = 'contrast(1.18) saturate(1.15)';
+        }
+    }
+}
+
+/**
+ * Step 2: Voice Simulator & Extractor
+ */
+let isVoiceRecording = false;
+function toggleVoiceRecording() {
+    isVoiceRecording = !isVoiceRecording;
+    const micBtn = document.getElementById('btn-mic-toggle');
+    const micStatus = document.getElementById('mic-status');
+
+    if (isVoiceRecording) {
+        if (micBtn) micBtn.classList.add('animate-pulse', 'from-red-500', 'to-amber-500');
+        if (micStatus) {
+            micStatus.innerText = "🔴 Listening... Speak naturally in Hindi, Telugu or English";
+            micStatus.className = "text-xs font-bold text-red-400 mt-3 uppercase tracking-wider animate-pulse";
+        }
+        setTimeout(() => {
+            if (isVoiceRecording) {
+                toggleVoiceRecording();
+                playVoiceSample('hi');
+            }
+        }, 2500);
+    } else {
+        if (micBtn) micBtn.classList.remove('animate-pulse', 'from-red-500', 'to-amber-500');
+        if (micStatus) {
+            micStatus.innerText = "✅ Voice Captured: Specifications Extracted Successfully";
+            micStatus.className = "text-xs font-bold text-emerald-400 mt-3 uppercase tracking-wider";
+        }
+    }
+}
+
+function playVoiceSample(lang) {
+    const titleInput = document.getElementById('cat-title');
+    const mediumInput = document.getElementById('cat-medium');
+    const specsInput = document.getElementById('cat-specs');
+
+    if (lang === 'hi') {
+        if (titleInput) titleInput.value = "पारंपरिक फसल उत्सव वारली कैनवास";
+        if (mediumInput) mediumInput.value = "चावल के लेप और गेरू मिट्टी से हस्तनिर्मित";
+        if (specsInput) specsInput.value = "18 x 24 इंच (सागवान लकड़ी फ्रेम)";
+    } else if (lang === 'te') {
+        if (titleInput) titleInput.value = "సాంప్రదాయ పోచంపల్లి డబుల్ ఇక్కత్ పట్టు";
+        if (mediumInput) mediumInput.value = "చేనేత మగ్గంపై సహజ రంగులతో నేసిన పట్టు";
+        if (specsInput) specsInput.value = "6.5 మీటర్లు (బ్లౌజ్ పీస్తో సహా)";
+    } else {
+        if (titleInput) titleInput.value = "Sacred Harvest Celebration Warli Canvas";
+        if (mediumInput) mediumInput.value = "Warli Tribal Art on Handspun Canvas";
+        if (specsInput) specsInput.value = "18 x 24 Inches (Hand-stretched)";
+    }
+    updateLiveProductCard();
+}
+
+function updateLiveProductCard() {
+    const titleVal = document.getElementById('cat-title')?.value || 'Handmade Craft';
+    const mediumVal = document.getElementById('cat-medium')?.value || 'Traditional Craft';
+    const specsVal = document.getElementById('cat-specs')?.value || '18 x 24 Inches';
+
+    const pName = document.getElementById('pcard-name');
+    const pCraft = document.getElementById('pcard-craft');
+    const pSize = document.getElementById('pcard-size');
+    const mTitle = document.getElementById('modal-product-title');
+    const mCraft = document.getElementById('modal-product-craft-tag');
+    const mSpecs = document.getElementById('modal-product-specs');
+
+    if (pName) pName.innerText = titleVal;
+    if (pCraft) pCraft.innerText = mediumVal;
+    if (pSize) pSize.innerText = specsVal;
+    if (mTitle) mTitle.innerText = titleVal;
+    if (mCraft) mCraft.innerText = mediumVal;
+    if (mSpecs) mSpecs.innerText = specsVal;
+}
+
+/**
+ * Step 3: Dynamic Pricing Calculator
+ */
+function calculatePricing() {
+    const material = parseInt(document.getElementById('slider-material')?.value || '450');
+    const artisans = parseInt(document.getElementById('slider-artisans')?.value || '1');
+    const hours = parseInt(document.getElementById('slider-hours')?.value || '14');
+    const wage = parseInt(document.getElementById('sel-skill-level')?.value || '180');
+    const pack = parseInt(document.getElementById('slider-pack')?.value || '150');
+    const complexity = parseFloat(document.getElementById('sel-complexity')?.value || '1.15');
+    const trend = parseFloat(document.getElementById('sel-market-trend')?.value || '1.0');
+
+    const laborTotal = artisans * hours * wage;
+    const baseCost = material + laborTotal + pack;
+    const marketPremium = Math.round(baseCost * (complexity * trend - 1));
+    const msrp = Math.round((baseCost + Math.max(0, marketPremium)) * 1.15);
+    const b2bRate = Math.round(baseCost * 0.95);
+    const daysReq = (hours / (artisans * 7)).toFixed(1);
+
+    const setTxt = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = val;
+    };
+
+    setTxt('val-material', '₹' + material.toLocaleString('en-IN'));
+    setTxt('val-artisans-cnt', artisans + (artisans === 1 ? ' Artisan' : ' Artisans'));
+    setTxt('val-hours', hours + ' Hours');
+    setTxt('val-labor-summary', `${hours} Hrs @ ₹${wage}/hr`);
+    setTxt('val-pack', '₹' + pack.toLocaleString('en-IN'));
+    setTxt('val-days-req', `${daysReq} Days Total`);
+
+    setTxt('out-labor', '₹' + laborTotal.toLocaleString('en-IN'));
+    setTxt('out-cost', '₹' + baseCost.toLocaleString('en-IN'));
+    setTxt('out-market-premium', (marketPremium >= 0 ? '+₹' : '-₹') + Math.abs(marketPremium).toLocaleString('en-IN'));
+    setTxt('out-msrp', '₹' + msrp.toLocaleString('en-IN'));
+    setTxt('out-b2b', '₹' + b2bRate.toLocaleString('en-IN') + ' / unit');
+
+    const pcardPrice = document.getElementById('pcard-price');
+    if (pcardPrice) pcardPrice.innerText = '₹' + msrp.toLocaleString('en-IN');
+}
+
+/**
+ * Step 5: Multi-Channel Syndication & B2B Publish
+ */
+function syncAllChannels() {
+    const btn = document.getElementById('btn-sync-all');
+    const lbl = document.getElementById('lbl-sync-all');
+    if (btn) btn.classList.add('animate-pulse');
+    if (lbl) lbl.innerText = "Syncing across 5 channels...";
+
+    setTimeout(() => {
+        const setHtml = (id, html) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        };
+
+        setHtml('status-amazon', '<i class="fa-solid fa-check-double text-emerald-400 me-1"></i> Synced to Amazon Karigar (FBA Compliant)!');
+        setHtml('status-flipkart', '<i class="fa-solid fa-check-double text-emerald-400 me-1"></i> Synced to Flipkart Samarth!');
+        setHtml('status-etsy', '<i class="fa-solid fa-check-double text-emerald-400 me-1"></i> Synced to Etsy Global ($48 USD)!');
+        setHtml('status-ondc', '<i class="fa-solid fa-check-double text-emerald-400 me-1"></i> Broadcasted to ONDC Network!');
+        setHtml('status-shopify', '<i class="fa-solid fa-check-double text-emerald-400 me-1"></i> Live on Cluster Storefront!');
+
+        if (btn) btn.classList.remove('animate-pulse');
+        if (lbl) lbl.innerText = "✅ Synced to All 5 Channels!";
+
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+    }, 1200);
+}
+
+function publishCraftListing() {
+    if (typeof confetti === 'function') {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    }
+    alert("🎉 Success! Your craft has been verified, GI-tagged, and published to the Vistar Kala Global B2B Marketplace.");
+    navigateTo('b2b');
 }

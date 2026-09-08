@@ -5,7 +5,17 @@ const { authenticate, optionalAuthenticate } = require('../middleware/auth');
 const { requireRole } = require('../middleware/role');
 const validate = require('../middleware/validate');
 
-const { upload } = require('../services/cloudinaryService');
+// Use Cloudinary if configured, else fall back to local disk multer
+let upload;
+try {
+  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    upload = require('../services/cloudinaryService').upload;
+  } else {
+    upload = require('../middleware/upload');
+  }
+} catch (e) {
+  upload = require('../middleware/upload');
+}
 
 const router = express.Router();
 
@@ -14,7 +24,16 @@ router.post(
   authenticate,
   requireRole('artisan'),
   upload.single('image'),
-  [body('name').isString().notEmpty()],
+  [
+    body('name').optional().isString(),
+    body('title').optional().isString(),
+    body().custom((_, { req }) => {
+      if (!req.body.name && !req.body.title) {
+        throw new Error('name or title is required');
+      }
+      return true;
+    }),
+  ],
   validate,
   productController.createProduct,
 );

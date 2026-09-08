@@ -3,9 +3,9 @@
  * ----------------------
  * Handles POST /api/translate requests.
  * - Validates input (text present, target language supported, text not too large).
- * - Calls translationService.
+ * - Calls translationService (powered by Groq LLaMA API).
  * - Returns only the translated text; NEVER exposes the API key.
- * - Falls back gracefully: if the API key is not configured, returns a 503
+ * - Falls back gracefully: if GROQ_API_KEY is not configured, returns a 503
  *   with a clear message so the frontend can show original text.
  */
 
@@ -46,11 +46,11 @@ const translateText = asyncHandler(async (req, res) => {
   }
 
   // ── Check API key presence early to return a clear 503 ─────────────────
-  if (!process.env.GOOGLE_TRANSLATE_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     // Return 503 so the frontend knows translation is unavailable (not a client error)
     return res.status(503).json({
       success: false,
-      message: 'Translation service is not configured. Set GOOGLE_TRANSLATE_API_KEY in the server .env file.',
+      message: 'Translation service is not configured. Set GROQ_API_KEY in the server .env file.',
     });
   }
 

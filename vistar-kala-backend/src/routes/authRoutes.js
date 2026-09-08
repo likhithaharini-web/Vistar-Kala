@@ -27,6 +27,8 @@ router.post(
 );
 
 router.get('/user/profile', authenticate, authController.getProfile);
+router.get('/auth/profile', authenticate, authController.getProfile);
 router.put('/user/profile', authenticate, authController.updateProfile);
+router.put('/auth/profile', authenticate, authController.updateProfile);
 
 module.exports = router;

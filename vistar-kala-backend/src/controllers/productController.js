@@ -7,7 +7,8 @@ const asyncHandler = require('../utils/asyncHandler');
 const createProduct = asyncHandler(async (req, res) => {
   const artisanId = req.user.id;
   const {
-    name,
+    name: reqName,
+    title,
     category,
     material,
     craftType,
@@ -17,36 +18,40 @@ const createProduct = asyncHandler(async (req, res) => {
     hindiDescription,
     keywords,
     quantity,
+    stockQuantity, // also accept stockQuantity from frontend form
+    artisanCluster, // frontend sends this as location hint
     dimensions,
     productionTimeDays,
     customizationAvailable,
     isHandmade,
     isGI,
     price,
+    status: reqStatus,
     images, // optional array of URLs
   } = req.body;
 
-  if (!name) throw new ApiError(400, 'name is required');
+  const name = reqName || title;
+  if (!name) throw new ApiError(400, 'name or title is required');
 
   const product = await Product.create({
     artisanId,
     name,
-    category,
+    category: category || 'Handcraft',
     material,
     craftType,
-    origin,
+    origin: origin || artisanCluster,
     description,
     englishDescription,
     hindiDescription,
     keywords: Array.isArray(keywords) ? keywords.join(',') : keywords,
-    quantity,
+    quantity: quantity !== undefined ? Number(quantity) : (stockQuantity !== undefined ? Number(stockQuantity) : 10),
     dimensions,
     productionTimeDays,
     customizationAvailable: !!customizationAvailable,
     isHandmade: isHandmade !== undefined ? !!isHandmade : true,
     isGI: !!isGI,
     price,
-    status: 'DRAFT',
+    status: reqStatus || 'PUBLISHED',
   });
 
   // Handle existing JSON array format
@@ -54,14 +59,17 @@ const createProduct = asyncHandler(async (req, res) => {
     await Promise.all(images.map((url) => ProductImage.create({ productId: product.id, url, type: 'ORIGINAL' })));
   }
 
-  // Handle multipart form upload via Cloudinary (req.file)
-  if (req.file && req.file.path) {
-    await ProductImage.create({ productId: product.id, url: req.file.path, type: 'ORIGINAL' });
+  // Handle multipart form upload — Cloudinary returns req.file.path as a URL,
+  // local disk storage stores req.file.filename as a relative path.
+  if (req.file) {
+    const imageUrl = req.file.path || `/uploads/${req.file.filename}`;
+    await ProductImage.create({ productId: product.id, url: imageUrl, type: 'ORIGINAL' });
   }
 
   const full = await Product.findByPk(product.id, { include: [{ model: ProductImage, as: 'images' }] });
   res.status(201).json({ success: true, product: full });
 });
+
 
 // GET /products  - also serves search & filtering (PRD section 14)
 const listProducts = asyncHandler(async (req, res) => {

@@ -343,6 +343,25 @@
                 </p>
             </div>
 
+            <!-- ROLE SELECTOR: Artisan or B2B -->
+            <div class="mb-5">
+                <p class="text-xs font-bold text-gold-300 uppercase tracking-widest mb-3 text-center">I am signing in as:</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" id="role-btn-artisan" onclick="selectPortalRole('artisan')"
+                        class="py-3.5 px-3 rounded-2xl bg-gold-500 text-maroon-950 font-black text-sm border-2 border-gold-400 shadow-lg transition-all flex flex-col items-center gap-1.5">
+                        <i class="fa-solid fa-palette text-xl"></i>
+                        <span>🎨 Artisan Login</span>
+                        <span class="text-[10px] font-semibold opacity-75">Craft Maker / Creator</span>
+                    </button>
+                    <button type="button" id="role-btn-b2b" onclick="selectPortalRole('b2b')"
+                        class="py-3.5 px-3 rounded-2xl bg-maroon-950 text-gold-300 font-bold text-sm border-2 border-gold-500/40 hover:border-gold-400 shadow-md transition-all flex flex-col items-center gap-1.5">
+                        <i class="fa-solid fa-building text-xl"></i>
+                        <span>🏢 B2B Login</span>
+                        <span class="text-[10px] font-semibold opacity-75">Wholesale Buyer</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Auth Mode Switcher (Sign In vs Create Account) -->
             <div class="mb-6 bg-maroon-950 p-1 rounded-2xl border border-gold-500/30 flex text-xs font-bold">
                 <button type="button" id="tab-auth-login" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-xl bg-gold-500 text-maroon-950 transition-all text-center font-extrabold shadow-md">
@@ -669,9 +688,9 @@
             <div class="mt-6 flex flex-wrap gap-2 justify-between items-center bg-maroon-950/80 p-4 rounded-2xl border border-gold-500/20">
                 <div class="flex items-center gap-2">
                     <span id="lbl-ai-preset" class="text-xs font-bold text-gold-300"><i class="fa-solid fa-sliders me-1"></i> AI Preset:</span>
-                    <button class="text-xs px-3 py-1.5 rounded-lg bg-gold-500 text-maroon-950 font-bold">Studio Lighting</button>
-                    <button class="text-xs px-3 py-1.5 rounded-lg bg-maroon-900 text-gold-200 border border-gold-500/30">Background Clean</button>
-                    <button class="text-xs px-3 py-1.5 rounded-lg bg-maroon-900 text-gold-200 border border-gold-500/30">4K Upscale</button>
+                    <button id="preset-studio-lighting" onclick="applyImageEnhancePreset('lighting')" class="text-xs px-3 py-1.5 rounded-lg bg-gold-500 text-maroon-950 font-bold transition-all shadow-md">Studio Lighting</button>
+                    <button id="preset-bg-clean" onclick="applyImageEnhancePreset('bg')" class="text-xs px-3 py-1.5 rounded-lg bg-maroon-900 text-gold-200 border border-gold-500/30 transition-all">Background Clean</button>
+                    <button id="preset-4k-upscale" onclick="applyImageEnhancePreset('upscale')" class="text-xs px-3 py-1.5 rounded-lg bg-maroon-900 text-gold-200 border border-gold-500/30 transition-all">4K Upscale</button>
                 </div>
 
                 <button onclick="setArtisanStep(2)" id="btn-proceed-step2" class="py-3 px-6 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 hover:from-gold-300 hover:to-amber-400 text-maroon-950 font-extrabold text-sm shadow-lg shadow-gold-500/20 transition-all flex items-center gap-2">
@@ -1362,7 +1381,7 @@
                 </h2>
                 <span id="lbl-click-hint" class="text-xs font-semibold text-gold-400">Click any product card to inspect full details, GI certificate & chat</span>
             </div>
-            <button onclick="openAddProductModal()" class="py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 via-gold-500 to-amber-500 hover:from-gold-300 hover:to-gold-400 text-maroon-950 font-black text-xs shadow-lg flex items-center gap-2 hover:scale-105 transition-all">
+            <button id="btn-publish-craft" onclick="openAddProductModal()" class="py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 via-gold-500 to-amber-500 hover:from-gold-300 hover:to-gold-400 text-maroon-950 font-black text-xs shadow-lg flex items-center gap-2 hover:scale-105 transition-all hidden">
                 <i class="fa-solid fa-plus-circle text-sm"></i> ➕ Publish Craft Product
             </button>
         </div>
@@ -1413,7 +1432,7 @@
                 </div>
 
                 <div class="p-5 pt-0">
-                    <button class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">
+                    <button onclick="openProductDetailModal('warli')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">
                         <i class="fa-solid fa-id-card"></i> 🛍️ Product Card & Details →
                     </button>
                 </div>
@@ -1458,7 +1477,7 @@
                 </div>
 
                 <div class="p-5 pt-0">
-                    <button class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">
+                    <button onclick="openProductDetailModal('ikat')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">
                         <i class="fa-solid fa-id-card"></i> 🛍️ Product Card & Details →
                     </button>
                 </div>
@@ -1503,7 +1522,7 @@
                 </div>
 
                 <div class="p-5 pt-0">
-                    <button class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">
+                    <button onclick="openProductDetailModal('pottery')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">
                         <i class="fa-solid fa-id-card"></i> 🛍️ Product Card & Details →
                     </button>
                 </div>
@@ -1548,7 +1567,7 @@
                 </div>
 
                 <div class="p-5 pt-0">
-                    <button class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">
+                    <button onclick="openProductDetailModal('dhokra')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">
                         <i class="fa-solid fa-id-card"></i> 🛍️ Product Card & Details →
                     </button>
                 </div>

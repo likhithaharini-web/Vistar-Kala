@@ -10,9 +10,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Particle Canvas
     initParticles();
 
-    // Check saved login auth state
+    // Check saved login auth state & restore UI
     if (authToken && currentUser) {
         console.log('[App] Session restored for user:', currentUser.phone || currentUser.name);
+        updateUIForRole(currentUser.role);
     }
 
     // Set initial view & load products
@@ -23,6 +24,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (addProductForm) {
         addProductForm.addEventListener('submit', handleAddProductSubmit);
     }
+
+    // Initialize Dynamic Pricing values
+    if (typeof calculatePricing === 'function') {
+        calculatePricing();
+    }
+
+    // Default role selector to Artisan on login page load
+    selectPortalRole('artisan');
 });
 
 /**
@@ -115,6 +124,9 @@ async function handleLoginSubmit(event) {
         const badge = document.getElementById('user-badge');
         if (badge) badge.innerText = `${result.user.name || 'User'} (${result.user.role || 'Verified'})`;
 
+        // Update role-based UI elements
+        updateUIForRole(result.user.role);
+
         // Clear password
         if (passwordInput) passwordInput.value = '';
 
@@ -192,6 +204,9 @@ async function handleRegisterSubmit(event) {
         const badge = document.getElementById('user-badge');
         if (badge) badge.innerText = `${result.user.name || 'User'} (${result.user.role || 'Verified'})`;
 
+        // Update role-based UI elements
+        updateUIForRole(result.user.role);
+
         // Clear form
         document.getElementById('form-auth-register')?.reset();
 
@@ -235,5 +250,123 @@ function loginAsGuest() {
     const topAuth = document.getElementById('lbl-top-auth');
     if (topAuth) topAuth.innerText = "Guest Mode";
     if (badge) badge.innerText = "Guest (Visitor)";
+    updateUIForRole('buyer');
     navigateTo('b2b');
+}
+
+/**
+ * Portal role selector on the login page (Artisan Login vs B2B Login)
+ * Visually highlights selected role and stores preference.
+ */
+function selectPortalRole(role) {
+    const artisanBtn = document.getElementById('role-btn-artisan');
+    const b2bBtn = document.getElementById('role-btn-b2b');
+
+    if (role === 'artisan') {
+        if (artisanBtn) artisanBtn.className = 'py-3.5 px-3 rounded-2xl bg-gold-500 text-maroon-950 font-black text-sm border-2 border-gold-400 shadow-lg transition-all flex flex-col items-center gap-1.5';
+        if (b2bBtn) b2bBtn.className = 'py-3.5 px-3 rounded-2xl bg-maroon-950 text-gold-300 font-bold text-sm border-2 border-gold-500/40 hover:border-gold-400 shadow-md transition-all flex flex-col items-center gap-1.5';
+    } else {
+        if (b2bBtn) b2bBtn.className = 'py-3.5 px-3 rounded-2xl bg-gold-500 text-maroon-950 font-black text-sm border-2 border-gold-400 shadow-lg transition-all flex flex-col items-center gap-1.5';
+        if (artisanBtn) artisanBtn.className = 'py-3.5 px-3 rounded-2xl bg-maroon-950 text-gold-300 font-bold text-sm border-2 border-gold-500/40 hover:border-gold-400 shadow-md transition-all flex flex-col items-center gap-1.5';
+    }
+
+    // Also set the registration role radio to match
+    const roleRadio = document.querySelector(`input[name="reg-role"][value="${role === 'b2b' ? 'buyer' : 'artisan'}"]`);
+    if (roleRadio) roleRadio.checked = true;
+}
+
+/**
+ * Updates role-sensitive UI elements (e.g. artisan-only buttons)
+ * Call after login, register, or guest mode.
+ */
+function updateUIForRole(role) {
+    const publishBtn = document.getElementById('btn-publish-craft');
+    if (publishBtn) {
+        if (role === 'artisan') {
+            publishBtn.classList.remove('hidden');
+        } else {
+            publishBtn.classList.add('hidden');
+        }
+    }
+}
+
+/**
+ * Handle Add Product Form Submission
+ * Builds FormData, calls backend /products (artisan-only), handles Cloudinary upload.
+ */
+async function handleAddProductSubmit(event) {
+    event.preventDefault();
+
+    const title = document.getElementById('add-title')?.value.trim();
+    const category = document.getElementById('add-category')?.value;
+    const price = document.getElementById('add-price')?.value;
+    const stock = document.getElementById('add-stock')?.value || '20';
+    const cluster = document.getElementById('add-cluster')?.value.trim();
+    const description = document.getElementById('add-description')?.value.trim();
+    const imageFile = document.getElementById('add-image-file')?.files[0];
+    const submitBtn = document.getElementById('btn-submit-add-product');
+
+    if (!title || !price || !description) {
+        alert('Please fill in Product Title, Price, and Description.');
+        return;
+    }
+
+    // Check auth — backend will also enforce this, but give early feedback
+    if (!authToken) {
+        alert('Please sign in as an Artisan to publish products.');
+        navigateTo('login');
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = '🔄 Publishing...';
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('name', title);
+        formData.append('category', category);
+        formData.append('price', price);
+        formData.append('stockQuantity', stock);
+        formData.append('artisanCluster', cluster || '');
+        formData.append('description', description);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        const result = await createProductAPI(formData);
+
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+
+        alert(`✅ "${title}" published successfully to the B2B Marketplace!`);
+
+        // Reset form and close modal
+        document.getElementById('form-add-product')?.reset();
+        if (typeof closeAddProductModal === 'function') closeAddProductModal();
+
+        // Reload marketplace products
+        if (typeof loadMarketplaceProducts === 'function') {
+            loadMarketplaceProducts();
+        }
+
+        navigateTo('b2b');
+    } catch (err) {
+        if (err.message && err.message.includes('403')) {
+            alert('❌ Only Artisan accounts can publish products. Please sign in as an Artisan.');
+        } else if (err.message && err.message.includes('401')) {
+            alert('❌ Please sign in first to publish products.');
+            navigateTo('login');
+        } else {
+            alert('❌ Failed to publish: ' + (err.message || 'Unknown error'));
+        }
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = '🚀 Publish Craft Product';
+        }
+    }
 }
