@@ -1,202 +1,83 @@
 /**
  * Vistar Kala - Product & Sourcing Marketplace Logic
+ * Connected directly to Backend API (Source of Truth)
  */
-
-// Fallback catalog for initial demo static cards
-const staticProductCatalog = {
-    warli: {
-        id: 'warli',
-        title: "Sacred Harvest Warli Canvas",
-        name: "Sacred Harvest Celebration Warli Canvas",
-        craft: "Warli Folk Art",
-        medium: "Warli Tribal Art on Handspun Canvas",
-        specs: "18 x 24 Inches (Hand-stretched)",
-        price: "₹2,850 / pc",
-        msrp: "₹3,890",
-        b2bRate: "₹2,850 / unit",
-        stock: "45 Units Ready",
-        cluster: "Palghar Master Cluster • Maharashtra",
-        img: "warli.png",
-        giBadge: "GI Verified #MH-WARLI",
-        giCert: "GI Verified #MH-WARLI",
-        certNo: "GI-TAG #MH-WARLI-2024-8842",
-        certCluster: "Dahanu & Palghar, Maharashtra",
-        desc: `"Handcrafted using organic rice paste and bamboo stylus. Depicts the traditional Tarpa harvest dance celebrating human harmony with nature."`,
-        material: "Rice Paste & Canvas",
-        origin: "Dahanu, Palghar, MH",
-        seller: "Devu Patil & Clan",
-        prodTime: "3–5 Days",
-        custom: "Available ✓",
-        labor: "₹2,520",
-        cost: "₹3,120",
-        premium: "+₹770",
-        materialVal: "₹450",
-        hours: "14 Hrs @ ₹180/hr",
-        artisans: "1 Master Artisan",
-        complexity: "Intricate Tarpa Motif (Medium)",
-        storyHeading: `"Song of the Mother Earth: The Sacred Tarpa Circle"`,
-        storyBody: `"In the deep misty forests of the Sahyadri mountains, the Warli tribe paints not with synthetic pigments, but with sacred rice paste and mother earth. This piece captures the Tarpa Dance—where men and women intertwine hands in a perpetual spiral, mirroring the cosmic cycle of birth, harvest, and monsoon. Every stroke represents harmony between human spirit and the sacred wilderness, preserving 2,500 years of unbroken indigenous oral history."`
-    },
-    ikat: {
-        id: 'ikat',
-        title: "Pochampally Double Ikat Silk Stoles",
-        name: "Pochampally Handloom Pure Double Ikat Silk",
-        craft: "Pochampally Handloom",
-        medium: "Pure Handloom Mulberry Silk & Natural Dyes",
-        specs: "6.5 Meters (Includes Blouse Fabric)",
-        price: "₹1,950 / pc",
-        msrp: "₹2,850",
-        b2bRate: "₹1,950 / unit",
-        stock: "50 Units Ready",
-        cluster: "Yadadri Master Cluster • Telangana",
-        img: "warli.png",
-        giBadge: "GI Verified #TS-IKAT",
-        giCert: "GI Verified #TS-IKAT",
-        certNo: "GI-TAG #TS-IKAT-2024-0012",
-        certCluster: "Pochampally & Bhoodan, Telangana",
-        desc: `"Intricate geometric resist-dyed pure mulberry silk woven on traditional pit-looms by master weavers in Telangana."`,
-        material: "Mulberry Silk & Natural Dyes",
-        origin: "Yadadri, Bhoodan, TS",
-        seller: "Kondaiah & Guild",
-        prodTime: "5–7 Days",
-        custom: "Available ✓",
-        labor: "₹1,800",
-        cost: "₹2,250",
-        premium: "+₹600",
-        materialVal: "₹450",
-        hours: "12 Hrs @ ₹150/hr",
-        artisans: "1 Pit-Loom Weaver",
-        complexity: "Double Ikat Geometric (Complex)",
-        storyHeading: `"The Mathematics of Sacred Loom: Pochampally Ikat"`,
-        storyBody: `"Woven on traditional pit looms in the heart of Telangana, Double Ikat is a mastercraft where warp and weft threads are individually tied and dyed before weaving. The mathematical precision required to align geometric motifs without error has been passed down over 800 years, creating timeless silk textiles that hold their vivid luster for generations."`
-    },
-    pottery: {
-        id: 'pottery',
-        title: "Jaipur Traditional Blue Pottery Floral Urn",
-        name: "Jaipur Blue Pottery Glazed Floral Urn Set",
-        craft: "Jaipur Blue Pottery",
-        medium: "Quartz & Fuller Earth Glazed Ceramic",
-        specs: "12 Inch Height (Hand-painted Cobalt)",
-        price: "₹1,420 / pc",
-        msrp: "₹2,100",
-        b2bRate: "₹1,420 / unit",
-        stock: "30 Units Ready",
-        cluster: "Kot Jewar Master Cluster • Rajasthan",
-        img: "warli.png",
-        giBadge: "GI Verified #RJ-POTTERY",
-        giCert: "GI Verified #RJ-POTTERY",
-        certNo: "GI-TAG #RJ-POTTERY-2024-0045",
-        certCluster: "Kot Jewar & Jaipur, Rajasthan",
-        desc: `"Hand-crafted clay-free quartz powder glazed ceramic painted with cobalt oxide floral foliage motifs."`,
-        material: "Quartz Glass & Cobalt Glaze",
-        origin: "Kot Jewar, Jaipur, RJ",
-        seller: "Ramgopal & Family",
-        prodTime: "4–6 Days",
-        custom: "Available ✓",
-        labor: "₹1,200",
-        cost: "₹1,650",
-        premium: "+₹450",
-        materialVal: "₹450",
-        hours: "10 Hrs @ ₹120/hr",
-        artisans: "1 Master Potter",
-        complexity: "Glazed Arabesque (Medium)",
-        storyHeading: `"The Persian Cobalt Flame: Jaipur Blue Pottery"`,
-        storyBody: `"Unique in the world of ceramics, Jaipur Blue Pottery uses no clay. Instead, master potters grind natural quartz stone powder, glass, and Fuller's earth, hand-painting intricate floral Arabesque motifs with cobalt and copper oxides. Fired once at precise kiln temperatures, each urn emerges with an unmistakable turquoise glass sheen celebrated in royal palaces."`
-    },
-    dhokra: {
-        id: 'dhokra',
-        title: "Bastar Tribal Dhokra Lost-Wax Brass Figurine",
-        name: "Bastar Tribal Horn Player Dhokra Figurine",
-        craft: "Bastar Bell Metal",
-        medium: "Hand-Cast Bell Metal Brass Alloy",
-        specs: "8 x 5 Inches (Solid Brass Alloy)",
-        price: "₹3,200 / pc",
-        msrp: "₹4,500",
-        b2bRate: "₹3,200 / unit",
-        stock: "15 Units Ready",
-        cluster: "Bastar Tribal Cluster • Chhattisgarh",
-        img: "warli.png",
-        giBadge: "GI Verified #CG-DHOKRA",
-        giCert: "GI Verified #CG-DHOKRA",
-        certNo: "GI-TAG #CG-DHOKRA-2024-0089",
-        certCluster: "Bastar & Kondagaon, Chhattisgarh",
-        desc: `"Ancient lost-wax bell metal brass sculpture molded using natural beeswax threads and river clay."`,
-        material: "Lost-Wax Bell Metal Brass",
-        origin: "Kondagaon, Bastar, CG",
-        seller: "Jharu Ram & Cluster",
-        prodTime: "7–10 Days",
-        custom: "Available ✓",
-        labor: "₹2,880",
-        cost: "₹3,600",
-        premium: "+₹900",
-        materialVal: "₹450",
-        hours: "16 Hrs @ ₹180/hr",
-        artisans: "2 Tribal Craftsmen",
-        complexity: "Lost-Wax Cast Figurine (Complex)",
-        storyHeading: `"The 4,000-Year Metallurgy of Bastar Dhokra"`,
-        storyBody: `"Direct descendant of the Mohenjo-daro Dancing Girl, Dhokra is one of humanity's earliest known lost-wax casting techniques. Bastar tribal craftsmen hand-wind beeswax threads around clay cores, burying the molds in pit furnaces fueled by sal wood. Because the wax melts away during molten metal pouring, each piece is an irreproducible, singular masterpiece."`
-    }
-};
 
 let liveApiProducts = [];
+let currentCategoryFilter = 'all';
+let currentSearchQuery = '';
 
 /**
- * Local storage helper for offline/demo mode without backend database
+ * Loads dynamic marketplace products directly from backend API
  */
-function getLocalProducts() {
-    try {
-        return JSON.parse(localStorage.getItem('vk_local_products') || '[]');
-    } catch {
-        return [];
-    }
-}
-
-function saveLocalProduct(prod) {
-    const prods = getLocalProducts();
-    prods.unshift(prod);
-    try {
-        localStorage.setItem('vk_local_products', JSON.stringify(prods));
-    } catch (e) {
-        console.warn('LocalStorage limit reached', e);
-    }
-}
-
-/**
- * Loads dynamic marketplace products from backend API (with offline local storage fallback)
- */
-async function loadMarketplaceProducts(category = 'all') {
+async function loadMarketplaceProducts(category = null, searchQuery = null) {
     const loader = document.getElementById('b2b-api-loader');
     const dynamicContainer = document.getElementById('b2b-dynamic-products-container') || createDynamicContainer();
-    
+    const errorNotice = document.getElementById('b2b-error-notice');
+
+    if (category !== null) currentCategoryFilter = category;
+    if (searchQuery !== null) currentSearchQuery = searchQuery;
+
     if (loader) loader.classList.remove('hidden');
+    if (errorNotice) errorNotice.classList.add('hidden');
 
-    const localProds = getLocalProducts();
-    let apiProds = [];
+    const params = {
+        status: 'PUBLISHED',
+        limit: 50
+    };
 
-    try {
-        const response = await fetchProductsAPI(category === 'all' ? null : category);
-        apiProds = response.data || response.products || (Array.isArray(response) ? response : []);
-    } catch (err) {
-        console.info('Backend offline - displaying local items and static catalog');
-    } finally {
-        if (loader) loader.classList.add('hidden');
+    if (currentCategoryFilter && currentCategoryFilter !== 'all') {
+        params.category = currentCategoryFilter;
+    }
+    if (currentSearchQuery && currentSearchQuery.trim()) {
+        params.q = currentSearchQuery.trim();
     }
 
-    // Filter local products if category selected
-    const filteredLocal = category === 'all'
-        ? localProds
-        : localProds.filter(p => (p.category || '').toLowerCase() === category.toLowerCase());
+    try {
+        const response = await fetchProductsAPI(params);
+        liveApiProducts = response.products || [];
 
-    liveApiProducts = [...filteredLocal, ...apiProds];
-    
-    if (dynamicContainer) {
-        dynamicContainer.innerHTML = '';
-        if (liveApiProducts.length > 0) {
-            liveApiProducts.forEach(prod => {
-                const cardElement = createProductCardElement(prod);
-                dynamicContainer.appendChild(cardElement);
-            });
+        if (dynamicContainer) {
+            dynamicContainer.innerHTML = '';
+
+            if (liveApiProducts.length === 0) {
+                dynamicContainer.innerHTML = `
+                    <div class="col-span-full py-16 text-center">
+                        <div class="w-16 h-16 mx-auto rounded-2xl bg-gold-500/10 text-gold-400 flex items-center justify-center text-2xl mb-4 border border-gold-500/20">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                        <h4 class="text-gold-200 font-bold text-base font-serif-heritage">No published products found</h4>
+                        <p class="text-stone-400 text-xs mt-1">Artisans can publish craft products via the Artisan Studio.</p>
+                    </div>
+                `;
+            } else {
+                liveApiProducts.forEach(prod => {
+                    const cardElement = createProductCardElement(prod);
+                    dynamicContainer.appendChild(cardElement);
+                });
+            }
+            if (typeof translateDOM === 'function' && typeof currentLang !== 'undefined') {
+                translateDOM(currentLang);
+            }
         }
+    } catch (err) {
+        console.error('[Marketplace] Failed to load products:', err.message);
+        if (dynamicContainer) {
+            dynamicContainer.innerHTML = `
+                <div class="col-span-full py-16 text-center">
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-red-950/60 text-red-400 flex items-center justify-center text-2xl mb-4 border border-red-500/30">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h4 class="text-red-200 font-bold text-base">Unable to connect to Vistar Kala server</h4>
+                    <p class="text-stone-400 text-xs mt-1">${err.message || 'Please check that the backend is running on http://localhost:4000.'}</p>
+                    <button onclick="loadMarketplaceProducts()" class="mt-4 px-4 py-2 rounded-xl bg-gold-500 text-maroon-950 text-xs font-bold shadow-md hover:bg-gold-400 transition-all">
+                        <i class="fa-solid fa-rotate-right me-1"></i> Retry Connection
+                    </button>
+                </div>
+            `;
+        }
+    } finally {
+        if (loader) loader.classList.add('hidden');
     }
 }
 
@@ -208,57 +89,95 @@ function createDynamicContainer() {
         container = document.createElement('div');
         container.id = 'b2b-dynamic-products-container';
         container.className = 'contents';
-        grid.insertBefore(container, grid.firstChild.nextSibling);
+        grid.appendChild(container);
     }
     return container;
 }
 
 /**
- * Renders HTML card element for a dynamic backend API product
+ * Format GI authentication badge text and style based on backend authenticationStatus & isGI
+ */
+function getGIBadgeInfo(isGI, authStatus) {
+    if (isGI && authStatus === 'VERIFIED') {
+        return {
+            text: '✓ GI Verified',
+            badgeClass: 'bg-emerald-500 text-maroon-950 font-black'
+        };
+    } else if (authStatus === 'PENDING') {
+        return {
+            text: '⏳ Verification Pending',
+            badgeClass: 'bg-amber-500 text-maroon-950 font-bold'
+        };
+    } else if (isGI) {
+        return {
+            text: '🌿 GI Registered',
+            badgeClass: 'bg-gold-500 text-maroon-950 font-bold'
+        };
+    }
+    return {
+        text: '🎨 Artisan Direct',
+        badgeClass: 'bg-maroon-950 text-gold-300 border border-gold-500/40 font-semibold'
+    };
+}
+
+/**
+ * Renders HTML card element for a backend API product
  */
 function createProductCardElement(prod) {
     const card = document.createElement('div');
-    card.setAttribute('data-category', prod.category || 'other');
+    card.setAttribute('data-category', (prod.category || 'other').toLowerCase());
     card.className = 'product-card bg-maroon-900/90 border-2 border-gold-500/35 rounded-2xl overflow-hidden shadow-xl hover:border-gold-400 hover:shadow-gold-500/20 transition-all group flex flex-col justify-between cursor-pointer hover:-translate-y-1';
-    card.onclick = () => openProductDetailModal(prod._id || prod.id);
+    
+    const productId = prod.id;
+    card.onclick = () => openProductDetailModal(productId);
 
-    const imageUrl = prod.images && prod.images.length > 0 ? (prod.images[0].url || prod.images[0]) : (prod.imageUrl || 'warli.png');
-    const title = prod.title || prod.name || 'Artisan Craft Item';
-    const category = (prod.category || 'Craft').toUpperCase();
-    const price = prod.price ? `₹${Number(prod.price).toLocaleString('en-IN')}` : '₹2,500';
-    const stock = prod.stockQuantity || prod.stock || 25;
-    const cluster = prod.artisanCluster || prod.cluster || 'GI Certified Cluster';
-    const giTag = prod.giTagNumber || prod.giCert || 'GI #VK-VERIFIED';
+    // Resolve image URL
+    let imageUrl = 'warli.png';
+    if (prod.images && prod.images.length > 0) {
+        const firstImg = prod.images[0];
+        const rawUrl = typeof firstImg === 'string' ? firstImg : firstImg.url;
+        if (rawUrl) {
+            imageUrl = rawUrl.startsWith('http') || rawUrl.startsWith('data:') ? rawUrl : `http://localhost:4000${rawUrl}`;
+        }
+    }
+
+    const title = prod.name || 'Handcrafted Heritage Item';
+    const origin = prod.origin || 'Registered Craft Cluster';
+    const priceFormatted = prod.price !== undefined ? `₹${Number(prod.price).toLocaleString('en-IN')}` : '₹0';
+    const stock = prod.quantity !== undefined ? prod.quantity : 0;
+    const giInfo = getGIBadgeInfo(prod.isGI, prod.authenticationStatus);
 
     card.innerHTML = `
         <div>
             <div class="h-52 bg-stone-900 overflow-hidden relative">
-                <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-105" onError="this.src='warli.png'">
+                <img src="${imageUrl}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-105" onError="this.onerror=null;this.src='warli.png'">
                 <span class="absolute top-3 left-3 bg-maroon-950/90 text-gold-300 text-[10px] font-black px-2.5 py-1 rounded-full border border-gold-500/40">
-                    ✨ Live Artisan Product
+                    ✨ ${prod.craftType || (prod.category || 'Craft').toUpperCase()}
                 </span>
-                <span class="absolute top-3 right-3 bg-gold-500 text-maroon-950 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md">
-                    ${giTag}
+                <span class="absolute top-3 right-3 ${giInfo.badgeClass} text-[10px] px-2.5 py-1 rounded-full shadow-md">
+                    ${giInfo.text}
                 </span>
             </div>
 
             <div class="p-5">
-                <span class="text-[10px] uppercase tracking-wider font-bold text-gold-400">${cluster}</span>
-                <h3 class="text-lg font-bold text-gold-100 font-serif-heritage mt-1 group-hover:text-gold-300 transition-colors">
+                <span class="text-[10px] uppercase tracking-wider font-bold text-gold-400">${origin}</span>
+                <h3 class="text-lg font-bold text-gold-100 font-serif-heritage mt-1 group-hover:text-gold-300 transition-colors line-clamp-1">
                     ${title}
                 </h3>
                 <p class="text-xs text-stone-200 mt-1 line-clamp-2">
-                    ${prod.description || 'Authentic handmade heritage product crafted by master artisans.'}
+                    ${prod.description || prod.englishDescription || 'Authentic handcrafted heritage item made by skilled artisans.'}
                 </p>
                 
                 <div class="mt-4 pt-3 border-t border-gold-500/20 flex justify-between items-center text-xs">
                     <div>
                         <span class="text-stone-400 block text-[10px]">Wholesale Rate:</span>
-                        <span class="font-extrabold text-gold-300 text-lg">${price} <span class="text-[10px] font-normal text-stone-400">/ pc</span></span>
+                        <span class="font-extrabold text-gold-300 text-lg">${priceFormatted} <span class="text-[10px] font-normal text-stone-400">/ pc</span></span>
                     </div>
                     <div class="text-right">
-                        <span class="text-stone-400 block text-[10px]">Stock:</span>
-                        <span class="font-bold text-amber-300 bg-maroon-950 px-2 py-0.5 rounded border border-gold-500/30">${stock} Pcs</span>
+                        <span class="text-stone-400 block text-[10px]">Available Stock:</span>
+                        <span class="font-bold ${stock > 0 ? 'text-amber-300 bg-maroon-950' : 'text-red-300 bg-red-950/50'} px-2 py-0.5 rounded border border-gold-500/30">
+                            ${stock > 0 ? `${stock} Pcs` : 'Out of Stock'}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -266,7 +185,7 @@ function createProductCardElement(prod) {
 
         <div class="p-5 pt-0">
             <button class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 btn-inspect-card hover:scale-[1.02]">
-                <i class="fa-solid fa-id-card"></i> 🛍️ Product Card & Details →
+                <i class="fa-solid fa-id-card"></i> 🛍️ Inspect Details & Buy →
             </button>
         </div>
     `;
@@ -289,117 +208,217 @@ function filterB2BCategory(cat) {
         activePill.classList.add('bg-gold-500', 'text-maroon-950', 'font-black');
     }
 
-    // Filter static fallback cards
-    document.querySelectorAll('.product-card').forEach(card => {
-        const cardCat = card.getAttribute('data-category');
-        if (cat === 'all' || cardCat === cat) {
-            card.classList.remove('hidden');
-        } else {
-            card.classList.add('hidden');
-        }
-    });
-
-    // Re-fetch dynamic cards from API
+    // Load filtered products from backend API
     loadMarketplaceProducts(cat);
 }
 
 /**
- * Add Product Form Handler (with Cloudinary multipart upload)
+ * Add Product Form Handler (Artisan only)
+ * Creates DRAFT product in backend via multipart/form-data, then publishes it.
  */
 async function handleAddProductSubmit(event) {
-    event.preventDefault();
+    if (event) event.preventDefault();
 
-    const title = document.getElementById('add-title')?.value.trim();
-    const category = document.getElementById('add-category')?.value;
-    const price = document.getElementById('add-price')?.value;
-    const stock = document.getElementById('add-stock')?.value;
-    const description = document.getElementById('add-description')?.value.trim();
-    const artisanCluster = document.getElementById('add-cluster')?.value.trim();
+    if (!authToken || !currentUser) {
+        alert('Please sign in as an artisan to publish products.');
+        if (typeof navigateTo === 'function') navigateTo('login');
+        return;
+    }
+
+    if (currentUser.role !== 'artisan') {
+        alert('Only registered artisans can publish products. Please sign in with an artisan account.');
+        return;
+    }
+
+    const titleInput = document.getElementById('add-title');
+    const categoryInput = document.getElementById('add-category');
+    const priceInput = document.getElementById('add-price');
+    const stockInput = document.getElementById('add-stock');
+    const clusterInput = document.getElementById('add-cluster');
+    const descriptionInput = document.getElementById('add-description');
     const imageInput = document.getElementById('add-image-file');
 
-    if (!title || !price || !description) {
-        alert('Please fill out all required product fields (Title, Price, Description).');
+    const name = titleInput?.value.trim();
+    const category = categoryInput?.value || 'warli';
+    const price = priceInput?.value;
+    const quantity = stockInput?.value || '10';
+    const origin = clusterInput?.value.trim() || 'Handmade Craft Cluster';
+    const description = descriptionInput?.value.trim();
+
+    if (!name || !price || !description) {
+        alert('Please fill out all required product fields: Product Name, Price, and Description.');
         return;
     }
 
     const submitBtn = document.getElementById('btn-submit-add-product');
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerText = 'Publishing to Cloudinary & Backend...';
+        submitBtn.innerText = 'Creating Product on Server...';
     }
 
     try {
-        let publishedViaBackend = false;
-        
-        // Try backend API first if server is running
-        try {
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('category', category || 'warli');
-            formData.append('price', price);
-            formData.append('stockQuantity', stock || 10);
-            formData.append('description', description);
-            formData.append('artisanCluster', artisanCluster || 'Verified GI Cluster');
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('category', category);
+        formData.append('material', category === 'pottery' ? 'Clay & Natural Glaze' : (category === 'ikat' ? 'Handloom Silk' : 'Traditional Canvas & Pigments'));
+        formData.append('craftType', category.toUpperCase());
+        formData.append('origin', origin);
+        formData.append('price', price);
+        formData.append('quantity', quantity);
+        formData.append('description', description);
+        formData.append('englishDescription', description);
+        formData.append('isHandmade', 'true');
+        formData.append('isGI', 'true');
 
-            if (imageInput && imageInput.files && imageInput.files[0]) {
-                formData.append('image', imageInput.files[0]);
-            }
-
-            await createProductAPI(formData);
-            publishedViaBackend = true;
-        } catch (apiErr) {
-            console.info('Backend unreachable, saving photo and craft product locally:', apiErr.message);
-
-            // Read the uploaded image file as a Data URL for offline display
-            let photoUrl = 'warli.png';
-            if (imageInput && imageInput.files && imageInput.files[0]) {
-                photoUrl = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.onerror = () => resolve('warli.png');
-                    reader.readAsDataURL(imageInput.files[0]);
-                });
-            }
-
-            const localProduct = {
-                id: 'local_' + Date.now(),
-                _id: 'local_' + Date.now(),
-                title: title,
-                name: title,
-                category: category || 'warli',
-                price: Number(price),
-                stockQuantity: Number(stock) || 10,
-                description: description,
-                artisanCluster: artisanCluster || 'Verified Local Artisan Cluster',
-                imageUrl: photoUrl,
-                images: [{ url: photoUrl }],
-                giTagNumber: 'GI #LOCAL-VERIFIED'
-            };
-
-            saveLocalProduct(localProduct);
+        if (imageInput && imageInput.files && imageInput.files[0]) {
+            formData.append('image', imageInput.files[0]);
         }
-        
+
+        // 1. Create Product (returns status: DRAFT)
+        const createResult = await createProductAPI(formData);
+        if (!createResult || !createResult.product || !createResult.product.id) {
+            throw new Error('Server did not return a valid product ID.');
+        }
+
+        const productId = createResult.product.id;
+        window._currentDraftProductId = productId;
+        window._lastPublishedProductId = productId;
+        window._currentProduct = createResult.product;
+        sessionStorage.setItem('vk_current_product_id', productId);
+
+        // 2. Publish Product (PUT /api/products/:id with status = PUBLISHED)
+        if (submitBtn) submitBtn.innerText = 'Publishing to Marketplace...';
+        await updateProductAPI(productId, { status: 'PUBLISHED' });
+
         if (typeof confetti === 'function') {
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         }
 
-        const msg = publishedViaBackend
-            ? `🎉 Success! "${title}" has been published to the backend & Cloudinary!`
-            : `🎉 Success! "${title}" with your uploaded photo has been published locally to the B2B Hub!`;
-        alert(msg);
+        alert(`🎉 Success! "${name}" has been published to the Vistar Kala Marketplace!`);
         closeAddProductModal();
 
         // Reset form
         document.getElementById('form-add-product')?.reset();
 
-        // Reload products catalog
+        // Reload products from backend
         await loadMarketplaceProducts();
     } catch (err) {
-        alert(`Failed to add product: ${err.message}`);
+        alert(`Product creation failed: ${err.message}`);
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerText = '🚀 Publish Craft Product';
         }
     }
+}
+
+/**
+ * Open Product Detail Modal by fetching product from backend
+ */
+async function openProductDetailModal(productId) {
+    const modal = document.getElementById('modal-product-detail');
+    if (!modal) return;
+
+    // Reset fields to loading state
+    const setTxt = (id, val) => {
+        const elem = document.getElementById(id);
+        if (elem) elem.innerText = val || '';
+    };
+
+    setTxt('modal-product-title', 'Loading Product Details...');
+    setTxt('modal-product-craft-tag', 'Authentic Craft');
+    setTxt('modal-product-desc', 'Fetching specifications and provenance from server...');
+    modal.classList.remove('hidden');
+
+    try {
+        let p = null;
+        // Try fetching by ID from API
+        if (productId) {
+            try {
+                const res = await fetchProductByIdAPI(productId);
+                p = res.product;
+            } catch (err) {
+                // If not found in backend or offline, look in loaded liveApiProducts
+                p = liveApiProducts.find(item => item.id === productId);
+            }
+        }
+
+        if (!p) {
+            throw new Error('Product details could not be retrieved.');
+        }
+
+        window._selectedModalProduct = p;
+
+        let imageUrl = 'warli.png';
+        if (p.images && p.images.length > 0) {
+            const firstImg = p.images[0];
+            const rawUrl = typeof firstImg === 'string' ? firstImg : firstImg.url;
+            if (rawUrl) {
+                imageUrl = rawUrl.startsWith('http') || rawUrl.startsWith('data:') ? rawUrl : `http://localhost:4000${rawUrl}`;
+            }
+        }
+
+        const elImg = document.getElementById('modal-product-img');
+        if (elImg) {
+            elImg.src = imageUrl;
+            elImg.onerror = () => { elImg.src = 'warli.png'; };
+        }
+
+        const priceStr = p.price !== undefined ? `₹${Number(p.price).toLocaleString('en-IN')}` : '₹2,500';
+        const msrpStr = p.price !== undefined ? `₹${Math.round(Number(p.price) * 1.35).toLocaleString('en-IN')}` : '₹3,500';
+        const giInfo = getGIBadgeInfo(p.isGI, p.authenticationStatus);
+
+        setTxt('modal-product-title', p.name || 'Handcrafted Heritage Item');
+        setTxt('modal-product-craft-tag', p.craftType || (p.category || 'Heritage').toUpperCase());
+        setTxt('modal-product-desc', p.description || p.englishDescription || 'Authentic handmade heritage product crafted by master artisans.');
+        setTxt('modal-product-material', p.material || 'Natural Regional Materials');
+        setTxt('modal-product-origin', p.origin || 'Registered Cluster');
+        setTxt('modal-product-seller', p.artisan ? (p.artisan.name || 'Verified Master Artisan') : 'Verified Master Artisan');
+        setTxt('modal-gi-badge', giInfo.text);
+        setTxt('modal-product-specs', p.dimensions || 'Standard Traditional Dimensions');
+        setTxt('modal-product-moq', `${p.quantity !== undefined ? p.quantity : 10} Units Ready`);
+        setTxt('modal-product-prodtime', p.productionTimeDays ? `${p.productionTimeDays} Days` : '3–5 Days');
+        setTxt('modal-product-custom', p.customizationAvailable ? 'Available ✓' : 'Standard Production');
+        setTxt('modal-product-price-badge', priceStr);
+
+        setTxt('modal-story-heading', `Traditional Heritage: ${p.name}`);
+        setTxt('modal-story-body', p.detailedDescription || p.description || 'Crafted using age-old ancestral techniques by regional artisans.');
+
+        setTxt('modal-price-mat-val', `₹${Math.round(Number(p.price || 2000) * 0.3)}`);
+        setTxt('modal-price-labor-summary', 'Master Craftsmanship & Hours');
+        setTxt('modal-price-artisans', 'Authentic Direct Payout');
+        setTxt('modal-out-labor', `₹${Math.round(Number(p.price || 2000) * 0.5)}`);
+        setTxt('modal-out-cost', `₹${Math.round(Number(p.price || 2000) * 0.8)}`);
+        setTxt('modal-out-premium', `₹${Math.round(Number(p.price || 2000) * 0.2)}`);
+        setTxt('modal-out-msrp', msrpStr);
+        setTxt('modal-out-b2b', `${priceStr} / unit`);
+
+        if (typeof translateDOM === 'function' && typeof currentLang !== 'undefined') {
+            translateDOM(currentLang);
+        }
+
+    } catch (err) {
+        setTxt('modal-product-title', 'Error Loading Product');
+        setTxt('modal-product-desc', err.message);
+    }
+}
+
+function closeProductDetailModal() {
+    const modal = document.getElementById('modal-product-detail');
+    if (modal) modal.classList.add('hidden');
+}
+
+// Alias for compatibility
+function closeProductModal() {
+    closeProductDetailModal();
+}
+
+function openAddProductModal() {
+    const modal = document.getElementById('modal-add-product');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeAddProductModal() {
+    const modal = document.getElementById('modal-add-product');
+    if (modal) modal.classList.add('hidden');
 }
