@@ -2097,7 +2097,6 @@ function selectCraftSample(craftKey) {
     if (clusterInput) clusterInput.value = item.origin;
     if (catInput) catInput.value = item.category;
 }
-}
 
 /**
  * Handle custom photo upload in Step 1
