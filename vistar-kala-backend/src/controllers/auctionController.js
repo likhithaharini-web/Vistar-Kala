@@ -5,10 +5,11 @@ const { notify } = require('../services/notificationService');
 
 // POST /auctions (artisan only, must own the product)
 const createAuction = asyncHandler(async (req, res) => {
-  const { productId, basePrice, minBidIncrement, startTime, endTime, quantity, prepDeliveryTimeDays } = req.body;
+  const { productId, basePrice, startingPrice, minBidIncrement, startTime, endTime, quantity, prepDeliveryTimeDays } = req.body;
+  const priceToUse = basePrice !== undefined ? basePrice : startingPrice;
 
-  if (!productId || basePrice === undefined || !startTime || !endTime) {
-    throw new ApiError(400, 'productId, basePrice, startTime and endTime are required');
+  if (!productId || priceToUse === undefined || !startTime || !endTime) {
+    throw new ApiError(400, 'productId, basePrice (or startingPrice), startTime and endTime are required');
   }
 
   const product = await Product.findByPk(productId);
@@ -26,7 +27,7 @@ const createAuction = asyncHandler(async (req, res) => {
   const auction = await Auction.create({
     productId,
     artisanId: req.user.id,
-    basePrice,
+    basePrice: priceToUse,
     minBidIncrement: minBidIncrement || 50,
     startTime,
     endTime,
