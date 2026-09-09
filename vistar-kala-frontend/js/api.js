@@ -156,10 +156,32 @@ async function fetchProductByIdAPI(productId) {
 
 async function createProductAPI(productData) {
     const isFormData = productData instanceof FormData;
-    return await apiFetch('/products', {
-        method: 'POST',
-        body: isFormData ? productData : JSON.stringify(productData)
-    });
+    const url = `${API_BASE}/products`;
+    const tokenExists = !!(authToken || localStorage.getItem('vk_token'));
+    const fieldNames = [];
+    if (isFormData) {
+        for (const [key] of productData.entries()) {
+            fieldNames.push(key);
+        }
+    } else if (productData && typeof productData === 'object') {
+        fieldNames.push(...Object.keys(productData));
+    }
+
+    console.log('[DEBUG Product Creation] Request URL:', url);
+    console.log('[DEBUG Product Creation] Auth token exists:', tokenExists);
+    console.log('[DEBUG Product Creation] FormData field names:', fieldNames);
+
+    try {
+        const result = await apiFetch('/products', {
+            method: 'POST',
+            body: isFormData ? productData : JSON.stringify(productData)
+        });
+        console.log('[DEBUG Product Creation] Response body:', result);
+        return result;
+    } catch (err) {
+        console.error('[DEBUG Product Creation] Failed with error:', err);
+        throw err;
+    }
 }
 
 async function updateProductAPI(productId, updateData) {
