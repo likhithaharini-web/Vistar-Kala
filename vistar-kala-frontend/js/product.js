@@ -219,24 +219,34 @@ function filterB2BCategory(cat) {
 async function handleAddProductSubmit(event) {
     if (event) event.preventDefault();
 
-    if (!authToken || !currentUser) {
+    const token = localStorage.getItem('vk_token') || (typeof authToken !== 'undefined' ? authToken : null);
+    let user = typeof currentUser !== 'undefined' ? currentUser : null;
+    if (!user) {
+        try {
+            user = JSON.parse(localStorage.getItem('vk_user') || 'null');
+        } catch (e) {
+            user = null;
+        }
+    }
+
+    if (!token || !user) {
         alert('Please sign in as an artisan to publish products.');
         if (typeof navigateTo === 'function') navigateTo('login');
         return;
     }
 
-    if (currentUser.role !== 'artisan') {
+    if (user.role !== 'artisan') {
         alert('Only registered artisans can publish products. Please sign in with an artisan account.');
         return;
     }
 
-    const titleInput = document.getElementById('add-title');
-    const categoryInput = document.getElementById('add-category');
-    const priceInput = document.getElementById('add-price');
-    const stockInput = document.getElementById('add-stock');
-    const clusterInput = document.getElementById('add-cluster');
-    const descriptionInput = document.getElementById('add-description');
-    const imageInput = document.getElementById('add-image-file');
+    const titleInput = document.getElementById('add-title') || document.getElementById('title');
+    const categoryInput = document.getElementById('add-category') || document.getElementById('category');
+    const priceInput = document.getElementById('add-price') || document.getElementById('price');
+    const stockInput = document.getElementById('add-stock') || document.getElementById('stockQuantity') || document.getElementById('quantity');
+    const clusterInput = document.getElementById('add-cluster') || document.getElementById('artisanCluster') || document.getElementById('origin');
+    const descriptionInput = document.getElementById('add-description') || document.getElementById('description');
+    const imageInput = document.getElementById('add-image-file') || document.getElementById('image');
 
     const name = titleInput?.value.trim();
     const category = categoryInput?.value || 'warli';
@@ -263,12 +273,17 @@ async function handleAddProductSubmit(event) {
         formData.append('material', category === 'pottery' ? 'Clay & Natural Glaze' : (category === 'ikat' ? 'Handloom Silk' : 'Traditional Canvas & Pigments'));
         formData.append('craftType', category.toUpperCase());
         formData.append('origin', origin);
-        formData.append('price', price);
-        formData.append('quantity', quantity);
         formData.append('description', description);
         formData.append('englishDescription', description);
+        formData.append('hindiDescription', description);
+        formData.append('keywords', `${category},handmade,craft,heritage`);
+        formData.append('quantity', String(quantity));
+        formData.append('dimensions', 'Standard Traditional');
+        formData.append('productionTimeDays', '5');
+        formData.append('customizationAvailable', 'true');
         formData.append('isHandmade', 'true');
         formData.append('isGI', 'true');
+        formData.append('price', String(price));
 
         if (imageInput && imageInput.files && imageInput.files[0]) {
             formData.append('image', imageInput.files[0]);
@@ -276,14 +291,16 @@ async function handleAddProductSubmit(event) {
 
         // 1. Create Product (returns status: DRAFT)
         const createResult = await createProductAPI(formData);
-        if (!createResult || !createResult.product || !createResult.product.id) {
-            throw new Error('Server did not return a valid product ID.');
+        const realProduct = createResult?.product || createResult?.data?.product || (createResult?.id ? createResult : null);
+        const productId = realProduct?.id;
+
+        if (!productId) {
+            throw new Error((createResult && createResult.message) || 'Server did not return a valid product ID.');
         }
 
-        const productId = createResult.product.id;
         window._currentDraftProductId = productId;
         window._lastPublishedProductId = productId;
-        window._currentProduct = createResult.product;
+        window._currentProduct = realProduct;
         sessionStorage.setItem('vk_current_product_id', productId);
 
         // 2. Publish Product (PUT /api/products/:id with status = PUBLISHED)

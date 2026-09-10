@@ -7,6 +7,39 @@ let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 
+// ─── ARTISAN PORTAL ROUTE GUARD ─────────────────────────────────────────────
+const _origNavigateTo = typeof navigateTo === 'function' ? navigateTo : (window.navigateTo || function () { });
+
+window.navigateTo = function (pageId) {
+    if (pageId === 'artisan') {
+        const token = localStorage.getItem('vk_token') || (typeof authToken !== 'undefined' ? authToken : null);
+        let user = typeof currentUser !== 'undefined' ? currentUser : null;
+        if (!user) {
+            try {
+                user = JSON.parse(localStorage.getItem('vk_user') || 'null');
+            } catch (e) {
+                user = null;
+            }
+        }
+
+        // 1. If there is no valid logged-in user, redirect to/show login screen
+        if (!token || !user) {
+            if (typeof selectPortalRole === 'function') selectPortalRole('artisan');
+            return _origNavigateTo('login');
+        }
+
+        // 2. If user is logged in but role is not "artisan", do not allow access
+        if (user.role !== 'artisan') {
+            alert('Access restricted: Only registered artisans can access the Artisan Studio.');
+            return;
+        }
+    }
+
+    // 3. If the user is an artisan, allow normal navigation
+    return _origNavigateTo(pageId);
+};
+navigateTo = window.navigateTo;
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Set Footer Year
     const yearEl = document.getElementById('year');
@@ -27,7 +60,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Set initial view & load products
-    navigateTo('landing');
+    if (authToken && currentUser) {
+        if (currentUser.role === 'artisan') {
+            navigateTo('artisan');
+            if (typeof setArtisanStep === 'function') setArtisanStep(1);
+        } else {
+            navigateTo('b2b');
+        }
+    }
+    else {
+        navigateTo('landing');
+    }
 
     // Bind Add Product Form submit
     const addProductForm = document.getElementById('form-add-product');

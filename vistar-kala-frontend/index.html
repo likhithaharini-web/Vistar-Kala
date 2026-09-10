@@ -636,93 +636,7 @@
     <!-- ========================================================================= -->
     <main id="view-artisan" class="relative z-10 flex-1 hidden flex-col px-4 py-8 max-w-5xl mx-auto w-full fade-in">
 
-        <!-- ARTISAN PROFILE RANKING & PERFORMANCE DASHBOARD SCORECARD -->
-        <div
-            class="bg-gradient-to-r from-maroon-900/98 via-maroon-850/95 to-maroon-900/98 border-2 border-gold-400 rounded-3xl p-6 sm:p-7 mb-7 backdrop-blur-md shadow-2xl relative overflow-hidden">
-            <div
-                class="absolute -right-10 -bottom-10 w-48 h-48 bg-gold-500/10 rounded-full blur-2xl pointer-events-none">
-            </div>
 
-            <div
-                class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-gold-500/25 pb-6">
-                <!-- Artisan Avatar & Tier -->
-                <div class="flex items-center gap-4">
-                    <div class="relative">
-                        <div
-                            class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-gold-400 via-amber-500 to-gold-600 text-maroon-950 flex items-center justify-center text-3xl font-black shadow-xl shadow-gold-500/30 border-2 border-gold-200">
-                            👨‍🎨
-                        </div>
-                        <span id="badge-gi-verified"
-                            class="absolute -bottom-2 -right-2 bg-emerald-500 text-maroon-950 text-[10px] font-black px-2 py-0.5 rounded-full border border-maroon-950 shadow-md">
-                            GI VERIFIED
-                        </span>
-                    </div>
-
-                    <div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <h2 class="text-xl sm:text-2xl font-black text-gold-100 font-serif-heritage"
-                                id="artisan-name">
-                                Devu Patil & Clan
-                            </h2>
-                            <span id="badge-master-icon"
-                                class="text-[11px] font-black uppercase tracking-wider text-maroon-950 bg-gradient-to-r from-gold-300 to-amber-400 px-3 py-1 rounded-full shadow-sm">
-                                👑 Master Heritage Icon (Tier 4/4)
-                            </span>
-                        </div>
-                        <p class="text-xs text-stone-300 mt-1 flex items-center gap-2">
-                            <span id="artisan-location"><i class="fa-solid fa-location-dot text-gold-400"></i> Dahanu
-                                Village, Palghar Cluster, Maharashtra</span>
-                            <span>•</span>
-                            <span id="artisan-experience" class="text-gold-300 font-semibold">18+ Years Artisan
-                                Lineage</span>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- National Rank Badge -->
-                <div class="flex items-center gap-3 bg-maroon-950/90 border border-gold-500/40 p-3 rounded-2xl">
-                    <div class="text-center px-2">
-                        <span id="lbl-cluster-rank"
-                            class="text-[10px] uppercase tracking-widest text-stone-400 font-bold block">Cluster
-                            Rank</span>
-                        <span id="val-cluster-rank" class="text-xl font-black text-gold-300 font-serif-heritage">#14
-                            National</span>
-                        <span id="sub-cluster-rank" class="text-[10px] text-emerald-400 font-semibold block">Top 2% in
-                            India</span>
-                    </div>
-                    <div class="w-px h-10 bg-gold-500/30"></div>
-                    <div class="text-center px-2">
-                        <span id="lbl-craft-score"
-                            class="text-[10px] uppercase tracking-widest text-stone-400 font-bold block">Craft
-                            Score</span>
-                        <span id="val-craft-score" class="text-xl font-black text-gold-300 font-serif-heritage">98.4 /
-                            100</span>
-                        <span id="sub-craft-rating" class="text-[10px] text-gold-400 font-semibold block">★★★★★
-                            (4.95)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Performance Metrics Row -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 text-xs">
-                <div class="bg-maroon-950/70 border border-gold-500/20 p-3 rounded-xl">
-                    <span id="lbl-m1" class="text-stone-400 block text-[10px]">Total B2B Wholesale Dispatches:</span>
-                    <span id="val-m1" class="text-base font-extrabold text-gold-200">1,280 Pieces</span>
-                </div>
-                <div class="bg-maroon-950/70 border border-gold-500/20 p-3 rounded-xl">
-                    <span id="lbl-m2" class="text-stone-400 block text-[10px]">Net Direct Bank Payout:</span>
-                    <span id="val-m2" class="text-base font-extrabold text-emerald-400">₹36,48,000 (100%)</span>
-                </div>
-                <div class="bg-maroon-950/70 border border-gold-500/20 p-3 rounded-xl">
-                    <span id="lbl-m3" class="text-stone-400 block text-[10px]">GI Authenticity Purity:</span>
-                    <span id="val-m3" class="text-base font-extrabold text-gold-200">99.8% Natural Paste</span>
-                </div>
-                <div class="bg-maroon-950/70 border border-gold-500/20 p-3 rounded-xl">
-                    <span id="lbl-m4" class="text-stone-400 block text-[10px]">Export Repeat Buyers:</span>
-                    <span id="val-m4" class="text-base font-extrabold text-gold-200">89% (UK, US, JP)</span>
-                </div>
-            </div>
-        </div>
 
         <!-- Portal Subheader & Step Indicator -->
         <div class="bg-maroon-900/95 border-2 border-gold-500/35 rounded-3xl p-6 mb-8 backdrop-blur-md shadow-2xl">
@@ -1224,7 +1138,7 @@
                             <span id="val-material-qty" class="text-gold-300">1 Canvas Unit</span>
                         </div>
                         <input type="range" id="slider-material" min="100" max="2500" step="50" value="450"
-                            oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
+                            oninput="event.preventDefault(); calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
                     </div>
 
                     <!-- 3. Labour & Human Effort -->
@@ -1241,7 +1155,7 @@
                                     <span id="val-artisans-cnt" class="text-gold-300 font-bold">1 Artisan</span>
                                 </div>
                                 <input type="range" id="slider-artisans" min="1" max="8" step="1" value="1"
-                                    oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
+                                    oninput="event.preventDefault(); calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
                             </div>
                             <div>
                                 <div class="flex justify-between text-[11px] text-stone-300 mb-1">
@@ -1249,7 +1163,7 @@
                                     <span id="val-hours" class="text-gold-300 font-bold">14 Hours</span>
                                 </div>
                                 <input type="range" id="slider-hours" min="2" max="60" step="1" value="14"
-                                    oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
+                                    oninput="event.preventDefault(); calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
                             </div>
                             <div>
                                 <span class="text-[11px] text-stone-400 block mb-1">Artisan Skill Tier:</span>
@@ -1274,7 +1188,7 @@
                                 <span class="text-[11px] text-stone-400 block mb-1">Eco Packaging & Prep:</span>
                                 <div class="flex items-center gap-2">
                                     <input type="range" id="slider-pack" min="50" max="600" step="25" value="150"
-                                        oninput="calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
+                                        oninput="event.preventDefault(); calculatePricing()" class="w-full accent-gold-400 cursor-pointer">
                                     <span id="val-pack"
                                         class="text-gold-300 font-bold text-[11px] whitespace-nowrap">₹150</span>
                                 </div>
@@ -2659,7 +2573,7 @@
                 </div>
             </div>
 
-            <form id="form-add-product" onsubmit="handleAddProductSubmit(event)" class="space-y-4 text-xs">
+            <form id="form-add-product" onsubmit="event.preventDefault(); handleAddProductSubmit(event); return false;" class="space-y-4 text-xs">
                 <div>
                     <label class="block text-gold-300 font-bold mb-1">Product Title / Craft Name *</label>
                     <input type="text" id="add-title" required placeholder="e.g. Sacred Harvest Warli Painting"

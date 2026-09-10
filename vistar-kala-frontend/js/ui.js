@@ -1791,13 +1791,23 @@ window._isCreatingProduct = false;
  * Save / Create Craft Product in Step 1 (POST /api/products returns status DRAFT)
  */
 async function saveStep1Product(andProceedToStep = null) {
-    if (!authToken || !currentUser) {
+    const token = localStorage.getItem('vk_token') || (typeof authToken !== 'undefined' ? authToken : null);
+    let user = typeof currentUser !== 'undefined' ? currentUser : null;
+    if (!user) {
+        try {
+            user = JSON.parse(localStorage.getItem('vk_user') || 'null');
+        } catch (e) {
+            user = null;
+        }
+    }
+
+    if (!token || !user) {
         alert('Please sign in as an artisan to create and save craft products.');
         navigateTo('login');
         return false;
     }
 
-    if (currentUser.role !== 'artisan') {
+    if (user.role !== 'artisan') {
         alert('Only registered artisans can create craft products. Please sign in with an artisan account.');
         return false;
     }
@@ -1836,18 +1846,24 @@ async function saveStep1Product(andProceedToStep = null) {
         const formData = new FormData();
         formData.append('name', name);
         formData.append('category', category);
-        formData.append('material', category === 'pottery' ? 'Clay & Quartz Glaze' : (category === 'ikat' ? 'Mulberry Silk' : 'Natural Canvas & Pigments'));
+        formData.append('material', category === 'pottery' ? 'Clay & Natural Glaze' : (category === 'ikat' ? 'Handloom Silk' : 'Traditional Canvas & Pigments'));
         formData.append('craftType', category.toUpperCase());
         formData.append('origin', origin);
-        formData.append('price', String(price));
-        formData.append('quantity', String(quantity));
         formData.append('description', description);
         formData.append('englishDescription', description);
+        formData.append('hindiDescription', description);
+        formData.append('keywords', `${category},handmade,craft,heritage`);
+        formData.append('quantity', String(quantity));
+        formData.append('dimensions', 'Standard Traditional');
+        formData.append('productionTimeDays', '5');
+        formData.append('customizationAvailable', 'true');
         formData.append('isHandmade', 'true');
         formData.append('isGI', 'true');
+        formData.append('price', String(price));
 
         // Check if custom photo file is attached
-        const customPhoto = window._uploadedCustomPhotoFile;
+        const photoInput = document.getElementById('step1-custom-photo') || document.getElementById('add-image-file');
+        const customPhoto = (photoInput && photoInput.files && photoInput.files[0]) || window._uploadedCustomPhotoFile;
         if (customPhoto instanceof File) {
             formData.append('image', customPhoto);
         }
@@ -1856,18 +1872,17 @@ async function saveStep1Product(andProceedToStep = null) {
         const createRes = await createProductAPI(formData);
         console.log('[Artisan Studio] createProductAPI response:', createRes);
 
-        // Response format is response.product.id (Requirement 10)
-        if (!createRes || !createRes.success || !createRes.product || !createRes.product.id) {
+        const realProduct = createRes?.product || createRes?.data?.product || (createRes?.id ? createRes : null);
+        const productId = realProduct?.id;
+
+        if (!productId) {
             throw new Error((createRes && createRes.message) || 'Server did not return a valid product ID.');
         }
-
-        const product = createRes.product;
-        const productId = product.id;
 
         // Store reliably in frontend state variables (Requirement 1 & 2)
         window._currentDraftProductId = productId;
         window._lastPublishedProductId = productId;
-        window._currentProduct = product;
+        window._currentProduct = realProduct;
         sessionStorage.setItem('vk_current_product_id', productId);
 
         // Sync with modal and live preview card fields

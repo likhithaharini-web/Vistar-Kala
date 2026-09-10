@@ -53,8 +53,12 @@ function clearAuthState() {
 async function apiFetch(endpoint, options = {}) {
     const headers = options.headers || {};
 
-    if (authToken && !headers['Authorization']) {
-        headers['Authorization'] = `Bearer ${authToken}`;
+    const token = localStorage.getItem('vk_token') || authToken;
+    if (token) {
+        authToken = token;
+        if (!headers['Authorization']) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
     }
 
     // Do not set Content-Type for FormData (browser sets multipart boundary)
