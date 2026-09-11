@@ -1691,15 +1691,48 @@ function navigateTo(pageId) {
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    if (pageId === 'b2b' && typeof loadMarketplaceProducts === 'function') {
-        loadMarketplaceProducts();
+    if (pageId === 'b2b') {
+        if (typeof loadMarketplaceProducts === 'function') loadMarketplaceProducts();
+        if (typeof loadAuctions === 'function') loadAuctions();
+        if (typeof loadRequirements === 'function') loadRequirements();
     }
-    if (pageId === 'artisan' && typeof loadOpenRequirements === 'function') {
-        loadOpenRequirements();
+    if (pageId === 'artisan') {
+        if (typeof loadOpenRequirements === 'function') loadOpenRequirements();
+        if (typeof loadArtisanMyProducts === 'function') loadArtisanMyProducts();
     }
 
     if (typeof translateDOM === 'function') {
         translateDOM(currentLang);
+    }
+}
+
+/**
+ * Switch B2B View Tabs: Wholesale Catalog, Live Auctions, Reverse Requirements
+ */
+function switchB2BTab(tab) {
+    const tabs = ['catalog', 'auctions', 'requirements'];
+    tabs.forEach(t => {
+        const sec = document.getElementById(`b2b-section-${t}`);
+        const btn = document.getElementById(`b2b-tab-${t}`);
+        if (sec) {
+            if (t === tab) sec.classList.remove('hidden');
+            else sec.classList.add('hidden');
+        }
+        if (btn) {
+            if (t === tab) {
+                btn.className = 'b2b-tab-btn py-2.5 px-5 rounded-2xl bg-gold-500 text-maroon-950 font-black text-xs shadow-md transition-all whitespace-nowrap flex items-center gap-2';
+            } else {
+                btn.className = 'b2b-tab-btn py-2.5 px-5 rounded-2xl bg-maroon-950 border border-gold-500/30 text-gold-300 font-bold text-xs hover:border-gold-400 transition-all whitespace-nowrap flex items-center gap-2';
+            }
+        }
+    });
+
+    if (tab === 'auctions' && typeof loadAuctions === 'function') {
+        loadAuctions();
+    } else if (tab === 'requirements' && typeof loadRequirements === 'function') {
+        loadRequirements();
+    } else if (tab === 'catalog' && typeof loadMarketplaceProducts === 'function') {
+        loadMarketplaceProducts();
     }
 }
 
@@ -2772,78 +2805,8 @@ async function handleDirectOrderSubmit(event) {
     }
 }
 
-function openOrdersModal() {
-    if (!authToken || !currentUser) {
-        alert('Please sign in to view your orders.');
-        navigateTo('login');
-        return;
-    }
-    const modal = document.getElementById('modal-orders-list');
-    if (modal) modal.classList.remove('hidden');
-    loadUserOrders();
-}
-
-function closeOrdersModal() {
-    const modal = document.getElementById('modal-orders-list');
-    if (modal) modal.classList.add('hidden');
-}
-
-async function loadUserOrders() {
-    const container = document.getElementById('orders-content-container');
-    if (!container) return;
-
-    container.innerHTML = `<p class="text-xs text-stone-400 text-center py-6">Loading orders from server...</p>`;
-
-    try {
-        const res = await fetchOrdersAPI();
-        const orders = res.orders || [];
-
-        if (orders.length === 0) {
-            container.innerHTML = `<p class="text-xs text-stone-400 text-center py-8">No orders found.</p>`;
-            return;
-        }
-
-        container.innerHTML = orders.map(o => `
-            <div class="p-4 rounded-2xl bg-maroon-950/80 border border-gold-500/20 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-gold-200 text-sm">Order #${o.id}</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">${o.status}</span>
-                    </div>
-                    <p class="text-stone-300 mt-1">${o.product ? o.product.name : 'Custom Craft Order'} • Qty: <strong>${o.quantity}</strong> • Total: <strong>₹${Number(o.price).toLocaleString('en-IN')}</strong></p>
-                    <p class="text-stone-400 text-[11px] mt-0.5"><i class="fa-solid fa-location-dot me-1 text-gold-400"></i> ${o.shippingAddress}</p>
-                </div>
-                ${currentUser.role === 'artisan' && o.status !== 'Delivered' && o.status !== 'Cancelled' ? `
-                    <button onclick="advanceOrderStatus('${o.id}', '${getNextOrderStatus(o.status)}')" class="px-3 py-1.5 rounded-xl bg-gold-500 hover:bg-gold-400 text-maroon-950 font-bold text-xs whitespace-nowrap shadow-sm">
-                        Mark "${getNextOrderStatus(o.status)}" →
-                    </button>
-                ` : ''}
-            </div>
-        `).join('');
-
-        if (typeof translateDOM === 'function' && typeof currentLang !== 'undefined') {
-            translateDOM(currentLang);
-        }
-    } catch (err) {
-        container.innerHTML = `<p class="text-xs text-red-300 text-center py-6">Failed to load orders: ${err.message}</p>`;
-    }
-}
-
-function getNextOrderStatus(status) {
-    const flow = ['Confirmed', 'In Production', 'Ready', 'Shipped', 'Delivered'];
-    const idx = flow.indexOf(status);
-    return idx !== -1 && idx < flow.length - 1 ? flow[idx + 1] : status;
-}
-
-async function advanceOrderStatus(orderId, newStatus) {
-    try {
-        await updateOrderStatusAPI(orderId, { status: newStatus });
-        alert(`Order status updated to "${newStatus}".`);
-        loadUserOrders();
-    } catch (err) {
-        alert(`Status update failed: ${err.message}`);
-    }
-}
+// Note: Order management (openOrdersModal, closeOrdersModal, loadUserOrders, handleUpdateOrderStatus)
+// is modularized in js/orders.js.
 
 // ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
 
@@ -2878,6 +2841,9 @@ async function loadNotifications() {
             return;
         }
 
+        const unreadCount = notifs.filter(n => !n.isRead).length;
+        updateNotificationBadge(unreadCount);
+
         container.innerHTML = notifs.map(n => `
             <div class="p-3 rounded-xl ${n.isRead ? 'bg-maroon-950/40 border border-gold-500/10' : 'bg-maroon-950 border border-gold-500/40'} text-xs flex justify-between items-center gap-2">
                 <div>
@@ -2894,6 +2860,17 @@ async function loadNotifications() {
         `).join('');
     } catch (err) {
         container.innerHTML = `<p class="text-xs text-red-300 text-center py-4">Failed to load: ${err.message}</p>`;
+    }
+}
+
+function updateNotificationBadge(count) {
+    const badge = document.getElementById('header-notif-badge');
+    if (!badge) return;
+    if (count > 0) {
+        badge.innerText = count > 9 ? '9+' : String(count);
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
     }
 }
 

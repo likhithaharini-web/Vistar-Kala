@@ -114,20 +114,38 @@ function restoreUserSession() {
         }
         if (btnSignOut) btnSignOut.classList.remove('hidden');
 
-        // Show "Publish Craft Product" button only for logged-in artisans
-        const btnPublish = document.getElementById('btn-publish-craft');
-        if (btnPublish) {
-            if (currentUser.role === 'artisan') {
-                btnPublish.classList.remove('hidden');
-            } else {
-                btnPublish.classList.add('hidden');
-            }
+        // Initialize real-time notifications via Socket.IO
+        if (typeof initSocketIO === 'function') {
+            initSocketIO();
+        }
+        if (typeof onRealtimeNotification === 'function') {
+            onRealtimeNotification((notif) => {
+                if (typeof loadNotifications === 'function') {
+                    loadNotifications();
+                }
+                const badge = document.getElementById('header-notif-badge');
+                if (badge) {
+                    const current = parseInt(badge.innerText, 10) || 0;
+                    badge.innerText = String(current + 1);
+                    badge.classList.remove('hidden');
+                }
+            });
+        }
+        if (typeof fetchNotificationsAPI === 'function') {
+            fetchNotificationsAPI(true).then(res => {
+                const unread = (res.notifications || []).length;
+                if (typeof updateNotificationBadge === 'function') {
+                    updateNotificationBadge(unread);
+                }
+            }).catch(() => {});
         }
     } else {
         const btnSignOut = document.getElementById('btn-top-signout');
         if (btnSignOut) btnSignOut.classList.add('hidden');
         const btnPublish = document.getElementById('btn-publish-craft');
         if (btnPublish) btnPublish.classList.add('hidden');
+        const badge = document.getElementById('header-notif-badge');
+        if (badge) badge.classList.add('hidden');
     }
 }
 

@@ -208,6 +208,13 @@ async function addProductImageAPI(productId, url, type = 'ORIGINAL') {
     });
 }
 
+async function reportProductAPI(productId, reason) {
+    return await apiFetch(`/products/${productId}/report`, {
+        method: 'POST',
+        body: JSON.stringify({ reason })
+    });
+}
+
 // ─── AI STUDIO APIS ──────────────────────────────────────────────────────────
 
 async function enhanceImageAPI(formData) {
@@ -237,6 +244,13 @@ async function calculateFairPriceAPI(priceFactors) {
     return await apiFetch('/ai/fair-price', {
         method: 'POST',
         body: JSON.stringify(priceFactors)
+    });
+}
+
+async function generateStoryAPI(storyData) {
+    return await apiFetch('/ai/story-gen', {
+        method: 'POST',
+        body: JSON.stringify(storyData)
     });
 }
 
@@ -385,4 +399,116 @@ async function translateDynamic(text, targetLang, sourceLang = null) {
 
 async function translateBatch(texts, targetLang, sourceLang = null) {
     return Promise.all(texts.map(t => translateDynamic(t, targetLang, sourceLang)));
+}
+
+// ─── MEDIA URL RESOLVER ──────────────────────────────────────────────────────
+
+function resolveMediaUrl(url, fallback = 'warli.png') {
+    if (!url || typeof url !== 'string') return fallback;
+    const trimmed = url.trim();
+    if (!trimmed) return fallback;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+        return trimmed;
+    }
+    if (trimmed.startsWith('/')) {
+        return `http://localhost:4000${trimmed}`;
+    }
+    return `http://localhost:4000/${trimmed}`;
+}
+
+// ─── REAL-TIME SOCKET.IO INTEGRATION ─────────────────────────────────────────
+
+let _socket = null;
+const _notificationListeners = [];
+
+function initSocketIO() {
+    if (typeof io === 'undefined') {
+        console.warn('[Socket.IO] socket.io client library not loaded.');
+        return null;
+    }
+    const token = localStorage.getItem('vk_token') || authToken;
+    if (!token) return null;
+
+    if (_socket) {
+        _socket.disconnect();
+    }
+
+    try {
+        _socket = io('http://localhost:4000', {
+            auth: { token },
+            transports: ['websocket', 'polling']
+        });
+
+        _socket.on('connect', () => {
+            console.log('[Socket.IO] Connected to real-time notification gateway');
+        });
+
+        _socket.on('notification', (notif) => {
+            console.log('[Socket.IO] New notification received:', notif);
+            _notificationListeners.forEach(fn => {
+                try { fn(notif); } catch (e) { console.error(e); }
+            });
+        });
+
+        _socket.on('disconnect', () => {
+            console.log('[Socket.IO] Disconnected from gateway');
+        });
+
+        return _socket;
+    } catch (err) {
+        console.warn('[Socket.IO] Connection failed:', err.message);
+        return null;
+    }
+}
+
+function onRealtimeNotification(callback) {
+    if (typeof callback === 'function') {
+        _notificationListeners.push(callback);
+    }
+}
+
+// Export for global access
+if (typeof window !== 'undefined') {
+    window.API_BASE = API_BASE;
+    window.apiFetch = apiFetch;
+    window.setAuthState = setAuthState;
+    window.clearAuthState = clearAuthState;
+    window.loginAPI = loginAPI;
+    window.registerAPI = registerAPI;
+    window.getProfileAPI = getProfileAPI;
+    window.updateProfileAPI = updateProfileAPI;
+    window.fetchProductsAPI = fetchProductsAPI;
+    window.fetchProductByIdAPI = fetchProductByIdAPI;
+    window.createProductAPI = createProductAPI;
+    window.updateProductAPI = updateProductAPI;
+    window.deleteProductAPI = deleteProductAPI;
+    window.addProductImageAPI = addProductImageAPI;
+    window.reportProductAPI = reportProductAPI;
+    window.enhanceImageAPI = enhanceImageAPI;
+    window.transcribeAudioAPI = transcribeAudioAPI;
+    window.generateCatalogueAPI = generateCatalogueAPI;
+    window.calculateFairPriceAPI = calculateFairPriceAPI;
+    window.generateStoryAPI = generateStoryAPI;
+    window.createAuctionAPI = createAuctionAPI;
+    window.fetchAuctionsAPI = fetchAuctionsAPI;
+    window.fetchAuctionByIdAPI = fetchAuctionByIdAPI;
+    window.placeBidAPI = placeBidAPI;
+    window.createRequirementAPI = createRequirementAPI;
+    window.fetchRequirementsAPI = fetchRequirementsAPI;
+    window.fetchRequirementByIdAPI = fetchRequirementByIdAPI;
+    window.submitReverseBidAPI = submitReverseBidAPI;
+    window.fetchReverseBidsAPI = fetchReverseBidsAPI;
+    window.selectArtisanAPI = selectArtisanAPI;
+    window.createOrderAPI = createOrderAPI;
+    window.fetchOrdersAPI = fetchOrdersAPI;
+    window.fetchOrderByIdAPI = fetchOrderByIdAPI;
+    window.updateOrderStatusAPI = updateOrderStatusAPI;
+    window.fetchNotificationsAPI = fetchNotificationsAPI;
+    window.markNotificationReadAPI = markNotificationReadAPI;
+    window.markAllNotificationsReadAPI = markAllNotificationsReadAPI;
+    window.translateDynamic = translateDynamic;
+    window.translateBatch = translateBatch;
+    window.resolveMediaUrl = resolveMediaUrl;
+    window.initSocketIO = initSocketIO;
+    window.onRealtimeNotification = onRealtimeNotification;
 }

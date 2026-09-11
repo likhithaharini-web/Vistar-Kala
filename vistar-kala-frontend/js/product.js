@@ -6,6 +6,7 @@
 let liveApiProducts = [];
 let currentCategoryFilter = 'all';
 let currentSearchQuery = '';
+let artisanMyProducts = [];
 
 /**
  * Loads dynamic marketplace products directly from backend API
@@ -13,13 +14,11 @@ let currentSearchQuery = '';
 async function loadMarketplaceProducts(category = null, searchQuery = null) {
     const loader = document.getElementById('b2b-api-loader');
     const dynamicContainer = document.getElementById('b2b-dynamic-products-container') || createDynamicContainer();
-    const errorNotice = document.getElementById('b2b-error-notice');
 
     if (category !== null) currentCategoryFilter = category;
     if (searchQuery !== null) currentSearchQuery = searchQuery;
 
     if (loader) loader.classList.remove('hidden');
-    if (errorNotice) errorNotice.classList.add('hidden');
 
     const params = {
         status: 'PUBLISHED',
@@ -136,12 +135,10 @@ function createProductCardElement(prod) {
     if (prod.images && prod.images.length > 0) {
         const firstImg = prod.images[0];
         const rawUrl = typeof firstImg === 'string' ? firstImg : firstImg.url;
-        if (rawUrl) {
-            imageUrl = rawUrl.startsWith('http') || rawUrl.startsWith('data:') ? rawUrl : `http://localhost:4000${rawUrl}`;
-        }
+        imageUrl = resolveMediaUrl(rawUrl, 'warli.png');
     }
 
-    const title = prod.name || 'Handcrafted Heritage Item';
+    const title = prod.name || prod.title || 'Handcrafted Heritage Item';
     const origin = prod.origin || 'Registered Craft Cluster';
     const priceFormatted = prod.price !== undefined ? `₹${Number(prod.price).toLocaleString('en-IN')}` : '₹0';
     const stock = prod.quantity !== undefined ? prod.quantity : 0;
@@ -214,7 +211,6 @@ function filterB2BCategory(cat) {
 
 /**
  * Add Product Form Handler (Artisan only)
- * Creates DRAFT product in backend via multipart/form-data, then publishes it.
  */
 async function handleAddProductSubmit(event) {
     if (event) event.preventDefault();
@@ -289,7 +285,7 @@ async function handleAddProductSubmit(event) {
             formData.append('image', imageInput.files[0]);
         }
 
-        // 1. Create Product (returns status: DRAFT)
+        // 1. Create Product
         const createResult = await createProductAPI(formData);
         const realProduct = createResult?.product || createResult?.data?.product || (createResult?.id ? createResult : null);
         const productId = realProduct?.id;
@@ -303,7 +299,7 @@ async function handleAddProductSubmit(event) {
         window._currentProduct = realProduct;
         sessionStorage.setItem('vk_current_product_id', productId);
 
-        // 2. Publish Product (PUT /api/products/:id with status = PUBLISHED)
+        // 2. Publish Product
         if (submitBtn) submitBtn.innerText = 'Publishing to Marketplace...';
         await updateProductAPI(productId, { status: 'PUBLISHED' });
 
@@ -333,7 +329,7 @@ async function handleAddProductSubmit(event) {
  * Open Product Detail Modal by fetching product from backend
  */
 async function openProductDetailModal(productId) {
-    const modal = document.getElementById('modal-product-detail');
+    const modal = document.getElementById('product-detail-modal') || document.getElementById('modal-product-detail');
     if (!modal) return;
 
     // Reset fields to loading state
@@ -349,13 +345,11 @@ async function openProductDetailModal(productId) {
 
     try {
         let p = null;
-        // Try fetching by ID from API
         if (productId) {
             try {
                 const res = await fetchProductByIdAPI(productId);
                 p = res.product;
             } catch (err) {
-                // If not found in backend or offline, look in loaded liveApiProducts
                 p = liveApiProducts.find(item => item.id === productId);
             }
         }
@@ -370,9 +364,7 @@ async function openProductDetailModal(productId) {
         if (p.images && p.images.length > 0) {
             const firstImg = p.images[0];
             const rawUrl = typeof firstImg === 'string' ? firstImg : firstImg.url;
-            if (rawUrl) {
-                imageUrl = rawUrl.startsWith('http') || rawUrl.startsWith('data:') ? rawUrl : `http://localhost:4000${rawUrl}`;
-            }
+            imageUrl = resolveMediaUrl(rawUrl, 'warli.png');
         }
 
         const elImg = document.getElementById('modal-product-img');
@@ -385,7 +377,7 @@ async function openProductDetailModal(productId) {
         const msrpStr = p.price !== undefined ? `₹${Math.round(Number(p.price) * 1.35).toLocaleString('en-IN')}` : '₹3,500';
         const giInfo = getGIBadgeInfo(p.isGI, p.authenticationStatus);
 
-        setTxt('modal-product-title', p.name || 'Handcrafted Heritage Item');
+        setTxt('modal-product-title', p.name || p.title || 'Handcrafted Heritage Item');
         setTxt('modal-product-craft-tag', p.craftType || (p.category || 'Heritage').toUpperCase());
         setTxt('modal-product-desc', p.description || p.englishDescription || 'Authentic handmade heritage product crafted by master artisans.');
         setTxt('modal-product-material', p.material || 'Natural Regional Materials');
@@ -398,9 +390,10 @@ async function openProductDetailModal(productId) {
         setTxt('modal-product-custom', p.customizationAvailable ? 'Available ✓' : 'Standard Production');
         setTxt('modal-product-price-badge', priceStr);
 
-        setTxt('modal-story-heading', `Traditional Heritage: ${p.name}`);
+        setTxt('modal-story-heading', `Traditional Heritage: ${p.name || p.title}`);
         setTxt('modal-story-body', p.detailedDescription || p.description || 'Crafted using age-old ancestral techniques by regional artisans.');
 
+        // Pricing breakdown
         setTxt('modal-price-mat-val', `₹${Math.round(Number(p.price || 2000) * 0.3)}`);
         setTxt('modal-price-labor-summary', 'Master Craftsmanship & Hours');
         setTxt('modal-price-artisans', 'Authentic Direct Payout');
@@ -409,6 +402,35 @@ async function openProductDetailModal(productId) {
         setTxt('modal-out-premium', `₹${Math.round(Number(p.price || 2000) * 0.2)}`);
         setTxt('modal-out-msrp', msrpStr);
         setTxt('modal-out-b2b', `${priceStr} / unit`);
+
+        // Check user role to customize action buttons inside modal
+        const isArtisanOwner = currentUser && p.artisanId === currentUser.id;
+        const isBuyer = currentUser && currentUser.role === 'buyer';
+
+        const actionContainer = document.getElementById('modal-product-actions');
+        if (actionContainer) {
+            if (isBuyer || !currentUser) {
+                actionContainer.innerHTML = `
+                    <button onclick="openBuyProductModal('${p.id}')"
+                        class="py-3 px-6 rounded-xl bg-gradient-to-r from-gold-400 via-gold-500 to-amber-500 hover:from-gold-300 hover:to-amber-400 text-maroon-950 font-black text-xs shadow-xl transition-all flex items-center gap-2 hover:scale-105">
+                        <i class="fa-solid fa-cart-shopping"></i> 🛍️ Direct Wholesale Buy Now (${priceStr}) →
+                    </button>
+                `;
+            } else if (isArtisanOwner) {
+                actionContainer.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <button onclick="openPublishModal()"
+                            class="py-2.5 px-4 rounded-xl bg-gradient-to-r from-gold-400 to-amber-500 text-maroon-950 font-extrabold text-xs shadow-md">
+                            🚀 Publish / Auction Mode
+                        </button>
+                        <button onclick="handleDeleteProduct('${p.id}')"
+                            class="py-2.5 px-3 rounded-xl bg-red-950/80 border border-red-500/40 text-red-300 font-bold text-xs hover:bg-red-900">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            }
+        }
 
         if (typeof translateDOM === 'function' && typeof currentLang !== 'undefined') {
             translateDOM(currentLang);
@@ -421,11 +443,10 @@ async function openProductDetailModal(productId) {
 }
 
 function closeProductDetailModal() {
-    const modal = document.getElementById('modal-product-detail');
+    const modal = document.getElementById('product-detail-modal') || document.getElementById('modal-product-detail');
     if (modal) modal.classList.add('hidden');
 }
 
-// Alias for compatibility
 function closeProductModal() {
     closeProductDetailModal();
 }
@@ -438,4 +459,121 @@ function openAddProductModal() {
 function closeAddProductModal() {
     const modal = document.getElementById('modal-add-product');
     if (modal) modal.classList.add('hidden');
+}
+
+/**
+ * Artisan My Products Management
+ */
+async function loadArtisanMyProducts() {
+    const container = document.getElementById('artisan-my-products-container');
+    if (!container) return;
+
+    if (!authToken || currentUser?.role !== 'artisan') {
+        container.innerHTML = `<p class="text-xs text-stone-400 text-center py-6">Sign in as an artisan to view your craft listings.</p>`;
+        return;
+    }
+
+    container.innerHTML = `<p class="text-xs text-stone-400 text-center py-6">Loading your craft listings...</p>`;
+
+    try {
+        const res = await fetchProductsAPI({ artisanId: currentUser.id, limit: 50 });
+        artisanMyProducts = res.products || [];
+
+        if (artisanMyProducts.length === 0) {
+            container.innerHTML = `
+                <div class="py-10 text-center">
+                    <div class="w-12 h-12 mx-auto rounded-xl bg-gold-500/10 text-gold-400 flex items-center justify-center text-xl mb-3 border border-gold-500/20">
+                        <i class="fa-solid fa-palette"></i>
+                    </div>
+                    <h5 class="text-gold-200 font-bold text-sm">No Products Created Yet</h5>
+                    <p class="text-stone-400 text-xs mt-1">Use the 5-step studio above or click "Publish Craft Product" to create your first listing.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = artisanMyProducts.map(p => {
+            let img = 'warli.png';
+            if (p.images && p.images.length > 0) {
+                const first = p.images[0];
+                img = resolveMediaUrl(typeof first === 'string' ? first : first.url);
+            }
+
+            const isPublished = p.status === 'PUBLISHED';
+
+            return `
+                <div class="p-3 sm:p-4 rounded-2xl bg-maroon-950/80 border border-gold-500/25 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="flex items-center gap-3">
+                        <img src="${img}" alt="${p.name}" class="w-14 h-14 rounded-xl object-cover border border-gold-500/30 bg-black" onError="this.onerror=null;this.src='warli.png'">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-gold-100 text-sm font-serif-heritage">${p.name || p.title}</h4>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isPublished ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-stone-800 text-stone-300 border border-stone-600'}">
+                                    ${p.status}
+                                </span>
+                            </div>
+                            <p class="text-stone-300 text-xs mt-0.5">₹${Number(p.price || 0).toLocaleString('en-IN')} • Stock: ${p.quantity || 0} Pcs • ${p.category || 'Craft'}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 self-end sm:self-auto">
+                        <button onclick="togglePublishProduct('${p.id}', '${isPublished ? 'DRAFT' : 'PUBLISHED'}')"
+                            class="py-1.5 px-3 rounded-xl ${isPublished ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'} text-xs font-bold">
+                            ${isPublished ? 'Unpublish' : 'Publish Live'}
+                        </button>
+                        <button onclick="openProductDetailModal('${p.id}')"
+                            class="py-1.5 px-3 rounded-xl bg-maroon-900 text-gold-300 border border-gold-500/30 text-xs font-bold hover:border-gold-400">
+                            Inspect
+                        </button>
+                        <button onclick="handleDeleteProduct('${p.id}')"
+                            class="py-1.5 px-2.5 rounded-xl bg-red-950 text-red-300 border border-red-500/40 text-xs hover:bg-red-900">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        container.innerHTML = `<p class="text-xs text-red-300 text-center py-4">Failed to load craft listings: ${err.message}</p>`;
+    }
+}
+
+async function togglePublishProduct(productId, newStatus) {
+    try {
+        await updateProductAPI(productId, { status: newStatus });
+        alert(`Product status changed to ${newStatus}.`);
+        loadArtisanMyProducts();
+        loadMarketplaceProducts();
+    } catch (err) {
+        alert(`Status update failed: ${err.message}`);
+    }
+}
+
+async function handleDeleteProduct(productId) {
+    if (!confirm('Are you sure you want to delete this craft product?')) return;
+    try {
+        await deleteProductAPI(productId);
+        alert('Product deleted.');
+        loadArtisanMyProducts();
+        loadMarketplaceProducts();
+        closeProductDetailModal();
+    } catch (err) {
+        alert(`Failed to delete product: ${err.message}`);
+    }
+}
+
+// Global Exports
+if (typeof window !== 'undefined') {
+    window.loadMarketplaceProducts = loadMarketplaceProducts;
+    window.filterB2BCategory = filterB2BCategory;
+    window.handleAddProductSubmit = handleAddProductSubmit;
+    window.openProductDetailModal = openProductDetailModal;
+    window.closeProductDetailModal = closeProductDetailModal;
+    window.closeProductModal = closeProductModal;
+    window.openAddProductModal = openAddProductModal;
+    window.closeAddProductModal = closeAddProductModal;
+    window.loadArtisanMyProducts = loadArtisanMyProducts;
+    window.togglePublishProduct = togglePublishProduct;
+    window.handleDeleteProduct = handleDeleteProduct;
 }
